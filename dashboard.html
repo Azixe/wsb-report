@@ -127,6 +127,20 @@
             
             <!-- Charts Section -->
             <div class="charts-section">
+                <!-- Revenue and Profit Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Omset & Laba</h3>
+                        <div class="chart-controls">
+                            <input type="date" id="startDate" class="date-input">
+                            <span>-</span>
+                            <input type="date" id="endDate" class="date-input">
+                            <button id="applyDateRange" class="apply-btn">Terapkan</button>
+                        </div>
+                    </div>
+                    <canvas id="revenueProfitChart"></canvas>
+                </div>
+                
                 <div class="chart-container">
                     <div class="chart-header">
                         <h3>Tren Penjualan</h3>
@@ -181,6 +195,7 @@
                     <canvas id="stockAnalysisChart"></canvas>
                 </div>
             </div>
+            
             
             <!-- Tables Section -->
             <div class="tables-section">
