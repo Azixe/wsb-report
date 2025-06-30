@@ -194,7 +194,7 @@ wsb-report/
 ### Server tidak bisa connect ke database
 - Pastikan MySQL server berjalan
 - Cek konfigurasi database di `server.js`
-- Pastikan database `toko3m` exists
+- Pastikan database `toko` exists
 - Jika database kosong, server akan menggunakan data fallback
 
 ### Dashboard tidak load data
@@ -226,6 +226,3 @@ wsb-report/
 - Date range picker mendukung validasi input
 - Semua data tidak dibatasi 5 row (menampilkan data lengkap)
 
-## 🤝 Support
-
-Jika ada pertanyaan atau masalah, silakan buat issue atau hubungi tim pengembang WSB.
