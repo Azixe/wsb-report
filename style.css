@@ -331,6 +331,10 @@ body {
     font-weight: 700;
 }
 
+.sidebar-header .logo-img {
+    height: 35px;
+}
+
 .sidebar-menu {
     list-style: none;
     flex: 1;
@@ -1103,4 +1107,14 @@ body {
 @keyframes loading {
     0% { left: -100%; }
     100% { left: 100%; }
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.login-header .logo-img {
+    height: 45px;
 }
