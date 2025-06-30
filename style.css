@@ -152,12 +152,12 @@ body {
     transition: all 0.3s ease;
 }
 
-.checkbox-container input[type="checkbox"]:checked + .checkmark {
+.checkbox-container input[type="checkbox"]:checked+.checkmark {
     background: #667eea;
     border-color: #667eea;
 }
 
-.checkbox-container input[type="checkbox"]:checked + .checkmark::after {
+.checkbox-container input[type="checkbox"]:checked+.checkmark::after {
     content: '✓';
     position: absolute;
     top: 50%;
@@ -238,8 +238,13 @@ body {
 }
 
 @keyframes float {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    100% { transform: translate(-100px, -100px) rotate(360deg); }
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-100px, -100px) rotate(360deg);
+    }
 }
 
 .illustration-content {
@@ -581,10 +586,21 @@ body {
     color: white;
 }
 
-.stat-icon.revenue { background: linear-gradient(135deg, #27ae60, #2ecc71); }
-.stat-icon.products { background: linear-gradient(135deg, #3498db, #5dade2); }
-.stat-icon.orders { background: linear-gradient(135deg, #f39c12, #f7dc6f); }
-.stat-icon.stock { background: linear-gradient(135deg, #e74c3c, #ec7063); }
+.stat-icon.revenue {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.stat-icon.products {
+    background: linear-gradient(135deg, #3498db, #5dade2);
+}
+
+.stat-icon.orders {
+    background: linear-gradient(135deg, #f39c12, #f7dc6f);
+}
+
+.stat-icon.stock {
+    background: linear-gradient(135deg, #e74c3c, #ec7063);
+}
 
 .stat-info h3 {
     font-size: 1.8rem;
@@ -938,9 +954,17 @@ body {
     text-align: center;
 }
 
-.export-option:nth-child(1) i { color: #e74c3c; }
-.export-option:nth-child(2) i { color: #27ae60; }
-.export-option:nth-child(3) i { color: #f39c12; }
+.export-option:nth-child(1) i {
+    color: #e74c3c;
+}
+
+.export-option:nth-child(2) i {
+    color: #27ae60;
+}
+
+.export-option:nth-child(3) i {
+    color: #f39c12;
+}
 
 .export-option div h4 {
     margin: 0 0 5px 0;
@@ -960,6 +984,7 @@ body {
         transform: translateY(50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -971,7 +996,7 @@ body {
     .charts-section {
         grid-template-columns: 1fr;
     }
-    
+
     .tables-section {
         grid-template-columns: 1fr;
     }
@@ -982,58 +1007,58 @@ body {
         grid-template-columns: 1fr;
         max-width: 500px;
     }
-    
+
     .login-illustration {
         display: none;
     }
-    
+
     .login-card {
         padding: 40px 30px;
     }
-    
+
     .sidebar {
         transform: translateX(-100%);
         width: 100%;
         max-width: 280px;
     }
-    
+
     .sidebar.active {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
     }
-    
+
     .sidebar-toggle {
         display: block;
     }
-    
+
     .header {
         padding: 15px 20px;
     }
-    
+
     .header-right {
         gap: 15px;
     }
-    
+
     .search-box input {
         width: 200px;
     }
-    
+
     .dashboard-content {
         padding: 20px;
     }
-    
+
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .stat-card {
         padding: 20px;
     }
-    
+
     .user-info {
         display: none;
     }
@@ -1043,25 +1068,25 @@ body {
     .login-card {
         padding: 30px 20px;
     }
-    
+
     .search-box {
         display: none;
     }
-    
+
     .header h1 {
         font-size: 1.4rem;
     }
-    
+
     .chart-container,
     .table-container {
         margin: 0 -10px;
         border-radius: 10px;
     }
-    
+
     .data-table {
         font-size: 0.8rem;
     }
-    
+
     .data-table th,
     .data-table td {
         padding: 10px 15px;
@@ -1074,8 +1099,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .slide-in-left {
@@ -1083,8 +1115,13 @@ body {
 }
 
 @keyframes slideInLeft {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
 }
 
 /* Loading States */
@@ -1105,16 +1142,23 @@ body {
 }
 
 @keyframes loading {
-    0% { left: -100%; }
-    100% { left: 100%; }
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 .logo-img {
     height: 40px;
+    margin-top: -15px;
     width: auto;
     object-fit: contain;
 }
 
 .login-header .logo-img {
     height: 45px;
+    margin-top: -20px;
 }
