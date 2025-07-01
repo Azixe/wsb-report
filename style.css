@@ -24,14 +24,15 @@ body {
 
 .login-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    max-width: 1200px;
+    grid-template-columns: 1fr;
+    /* Diubah dari 2 kolom menjadi 1 kolom */
+    max-width: 500px;
+    /* Diubah agar sesuai untuk satu form */
     width: 100%;
     background: white;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    min-height: 600px;
 }
 
 .login-card {
@@ -216,83 +217,7 @@ body {
     color: #666;
 }
 
-.login-illustration {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-illustration::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    animation: float 20s infinite linear;
-}
-
-@keyframes float {
-    0% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-
-    100% {
-        transform: translate(-100px, -100px) rotate(360deg);
-    }
-}
-
-.illustration-content {
-    text-align: center;
-    z-index: 1;
-    position: relative;
-    max-width: 400px;
-    padding: 40px;
-}
-
-.illustration-content i {
-    font-size: 4rem;
-    margin-bottom: 30px;
-    opacity: 0.9;
-}
-
-.illustration-content h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    font-weight: 700;
-}
-
-.illustration-content p {
-    font-size: 1.1rem;
-    margin-bottom: 30px;
-    opacity: 0.9;
-}
-
-.illustration-content ul {
-    list-style: none;
-    text-align: left;
-}
-
-.illustration-content li {
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 1rem;
-}
-
-.illustration-content li i {
-    font-size: 1rem;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 8px;
-    border-radius: 50%;
-    margin: 0;
-}
+/* KODE UNTUK BAGIAN ILUSTRASI SUDAH DIHAPUS DARI SINI */
 
 /* Dashboard Styles */
 .dashboard-page {
@@ -1122,14 +1047,7 @@ body {
 }
 
 @media (max-width: 768px) {
-    .login-container {
-        grid-template-columns: 1fr;
-        max-width: 500px;
-    }
-
-    .login-illustration {
-        display: none;
-    }
+    /* Aturan untuk .login-container dan .login-illustration telah dihapus dari sini */
 
     .login-card {
         padding: 40px 30px;
