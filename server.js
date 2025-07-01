@@ -188,15 +188,12 @@ app.get('/api/revenue-profit', async (req, res) => {
         console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}`);
         
         const query = `
-            SELECT 
-                DATE(pf.tgl_jual) as tanggal,
-                SUM(pf.grand_total) as omset,
-                SUM(COALESCE(pd.total - (COALESCE(pd.h_beli, 0) * pd.jumlah), 0)) as laba
-            FROM penjualan_fix pf
-            LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
-            WHERE pf.tgl_jual BETWEEN ? AND ?
-            GROUP BY DATE(pf.tgl_jual)
-            ORDER BY tanggal
+            select DATE_FORMAT(tgl_jual, '%Y-%m') as bulan, 
+            sum((netto - h_beli) * (jumlah - retur)) as total_laba, 
+            sum(total) as total_omset from penjualan_det 
+            WHERE tgl_jual BETWEEN ? AND ?
+            group by DATE_FORMAT(tgl_jual, '%Y-%m') 
+            order by bulan
         `;
         
         const results = await executeQuery(query, [startDate, endDate]);
@@ -221,11 +218,11 @@ app.get('/api/revenue-profit', async (req, res) => {
         } else {
             console.log(`✅ Found ${results.length} records`);
             results.forEach(row => {
-                const date = new Date(row.tanggal);
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                omsetData.push(Math.round(row.omset || 0));
-                labaData.push(Math.round(row.laba || 0));
+                labels.push(row.bulan); // '2025-06', '2025-07', dll.
+                omsetData.push(Math.round(row.total_omset || 0));
+                labaData.push(Math.round(row.total_laba || 0));
             });
+
         }
         
         res.json({
