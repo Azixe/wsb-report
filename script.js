@@ -671,6 +671,7 @@ function initDateRange() {
             }
             
             loadRevenueProfitData(start, end);
+            loadRevenueProfitDataTabels(start, end);
             showNotification(`Memuat data dari ${start} sampai ${end}`, 'info');
         });
         
@@ -755,9 +756,19 @@ function updateRevenueProfitChart(data) {
     console.log('Revenue profit chart updated with data:', { labels, revenueData, profitData });
 }
 
-async function loadRevenueProfitDataTabels() {
+async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
     try {
-        const data = await fetchAPI(`revenue-profit`);
+        const params = {};
+        
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+            console.log('Loading revenue profit data for date range:', startDate, 'to', endDate);
+        } else {
+            console.log('Loading revenue profit data with default date range');
+        }
+
+        const data = await fetchAPI(`revenue-profit`, params);
 
         const tableBody = document.querySelector('#RevenueProfitTable tbody');
         tableBody.innerHTML = '';
