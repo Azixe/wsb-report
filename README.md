@@ -15,14 +15,12 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 ### Prerequisites
 - Node.js (versi 14 atau lebih baru)
 - MySQL Server
-- Database `toko3m` (sesuai dengan struktur yang ada)
+- Database `toko` (sesuai dengan struktur yang ada)
 
 ### Langkah-langkah Installation
 
 1. **Clone atau download project ini**
-   ```bash
-   cd d:\Coding\Magang\wsb-report
-   ```
+
 
 2. **Install dependencies**
    ```bash
@@ -31,7 +29,7 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 
 3. **Konfigurasi Database**
    - Pastikan MySQL server berjalan
-   - Database `toko3m` sudah tersedia
+   - Database `toko` sudah tersedia
    - Update konfigurasi di `server.js` jika diperlukan:
      ```javascript
      const dbConfig = {
@@ -39,7 +37,7 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
          port: 3306,
          user: 'root',
          password: '', // Ganti dengan password MySQL Anda
-         database: 'toko3m'
+         database: 'toko'
      };
      ```
 
@@ -53,9 +51,6 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
    npm run dev
    ```
 
-5. **Akses Dashboard**
-   - Buka browser dan kunjungi: `http://localhost:3000`
-   - Dashboard akan tersedia di URL tersebut
 
 ## 📡 API Endpoints
 
@@ -199,7 +194,7 @@ wsb-report/
 ### Server tidak bisa connect ke database
 - Pastikan MySQL server berjalan
 - Cek konfigurasi database di `server.js`
-- Pastikan database `toko3m` exists
+- Pastikan database `toko` exists
 - Jika database kosong, server akan menggunakan data fallback
 
 ### Dashboard tidak load data
@@ -231,6 +226,3 @@ wsb-report/
 - Date range picker mendukung validasi input
 - Semua data tidak dibatasi 5 row (menampilkan data lengkap)
 
-## 🤝 Support
-
-Jika ada pertanyaan atau masalah, silakan buat issue atau hubungi tim pengembang WSB.
