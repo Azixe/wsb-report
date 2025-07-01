@@ -557,6 +557,10 @@ function animateElements() {
     });
 }
 
+function formatCurrency(value) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+}
+
 // Functions to load and handle dashboard data
 async function loadDashboardData() {
     try {
@@ -751,34 +755,30 @@ function updateRevenueProfitChart(data) {
     console.log('Revenue profit chart updated with data:', { labels, revenueData, profitData });
 }
 
-function getFallbackRevenueProfitData() {
-    // Fallback data for demo purposes (matching the image style)
-    const today = new Date();
-    const data = [];
-    
-    // Generate 5 days of data similar to the image
-    for (let i = 4; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        
-        const baseRevenue = 15000000 + (i * 2000000) + Math.random() * 3000000;
-        const baseProfit = baseRevenue * (0.6 + Math.random() * 0.2); // 60-80% profit margin
-        
-        data.push({
-            labels: [date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })],
-            omset: [Math.round(baseRevenue)],
-            laba: [Math.round(baseProfit)]
+async function loadRevenueProfitDataTabels() {
+    try {
+        const data = await fetchAPI(`revenue-profit`);
+
+        const tableBody = document.querySelector('#RevenueProfitTable tbody');
+        tableBody.innerHTML = '';
+
+        data.labels.forEach((bulan, index) => {
+            const omset = data.omset[index] || 0;
+            const laba = data.laba[index] || 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${bulan}</td>
+                <td>${formatCurrency(omset)}</td>
+                <td>${formatCurrency(laba)}</td>
+            `;
+            tableBody.appendChild(tr);
         });
     }
-    
-    // Combine all data
-    const combined = {
-        labels: data.map(d => d.labels[0]),
-        omset: data.map(d => d.omset[0]),
-        laba: data.map(d => d.laba[0])
-    };
-    
-    return combined;
+    catch (error) {
+        console.error('Gagal mengambil data omset & laba:', error);
+        const tableBody = document.querySelector('#RevenueProfitTable tbody');
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Gagal memuat data. Silahkan coba lagi nanti.</td></tr>';
+    }
 }
 
 function updateCharts(salesTrend, categorySales, monthlyComparison, topProducts, stockAnalysis) {
@@ -991,7 +991,10 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Initialize search when DOM is ready
-document.addEventListener('DOMContentLoaded', initSearch);
+document.addEventListener('DOMContentLoaded', function() {
+    initSearch();
+    loadRevenueProfitDataTabels();
+});
 
 // Export functionality
 function showExportOptions() {

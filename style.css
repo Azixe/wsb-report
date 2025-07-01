@@ -724,6 +724,10 @@ body {
     background: #f8f9fa;
 }
 
+.table-margin {
+    margin-bottom: 1px;
+}
+
 .product-info {
     display: flex;
     align-items: center;
