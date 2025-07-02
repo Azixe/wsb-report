@@ -63,6 +63,9 @@ async function executeQuery(query, params = []) {
 app.get('/api/stats', async (req, res) => {
     try {
         // Total revenue (last 30 days)
+        const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+
         const revenueQuery = `
             SELECT SUM(grand_total) as total_revenue 
             FROM penjualan_fix 
@@ -112,73 +115,6 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// Sales trend endpoint
-app.get('/api/sales-trend', async (req, res) => {
-    try {
-        const query = `
-            SELECT DATE(tgl_jual) as date, SUM(grand_total) as total 
-            FROM penjualan_fix 
-            WHERE tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-            GROUP BY DATE(tgl_jual)
-            ORDER BY date
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No sales data found');
-        }
-        
-        const labels = results.map(row => {
-            const date = new Date(row.date);
-            return date.toLocaleDateString('id-ID', { weekday: 'short' });
-        });
-        
-        const data = results.map(row => Math.round(row.total / 1000000)); // Convert to millions
-        
-        res.json({ labels, data });
-    } catch (error) {
-        console.error('Sales trend API error:', error);
-        // Fallback data
-        res.json({
-            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-            data: [12, 19, 15, 25, 22, 18, 20]
-        });
-    }
-});
-
-// Category sales endpoint
-app.get('/api/category-sales', async (req, res) => {
-    try {
-        const query = `
-            SELECT p.kat_brg as kategori, SUM(pd.total) as total_sales
-            FROM penjualan_det pd
-            JOIN produk p ON pd.kd_brg = p.kd_brg
-            JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
-            WHERE pf.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            GROUP BY p.kat_brg
-            ORDER BY total_sales DESC
-            LIMIT 5
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No category data found');
-        }
-        
-        const labels = results.map(row => row.kategori || 'Unknown');
-        const data = results.map(row => Math.round((row.total_sales / results.reduce((sum, r) => sum + r.total_sales, 0)) * 100));
-        
-        res.json({ labels, data });
-    } catch (error) {
-        console.error('Category sales API error:', error);
-        // Fallback data
-        res.json({
-            labels: ['Elektronik', 'Fashion', 'Aksesoris', 'Olahraga', 'Lainnya'],
-            data: [35, 25, 20, 15, 5]
-        });
-    }
-});
-
 // Revenue & Profit endpoint
 app.get('/api/revenue-profit', async (req, res) => {
     try {
@@ -188,7 +124,7 @@ app.get('/api/revenue-profit', async (req, res) => {
         console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}`);
         
         const query = `
-            SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota 
+            SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota
             FROM (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, SUM((netto - h_beli) * (jumlah - retur)) AS total_laba, 
             SUM(total) AS total_omset FROM penjualan_det where tgl_jual BETWEEN ? AND ? 
             GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS a 
@@ -200,7 +136,13 @@ app.get('/api/revenue-profit', async (req, res) => {
         `;
         
         const results = await executeQuery(query, [startDate, endDate, startDate, endDate]);
+
+        const totalRevenueQuery = `SELECT SUM(grand_total) AS total_revenue FROM penjualan_fix WHERE tgl_jual BETWEEN ? AND ?`;
+        const totalRevenueResult = await executeQuery(totalRevenueQuery, [startDate, endDate]);
+        const totalRevenue = totalRevenueResult[0]?.total_revenue || 0;
+
         
+        let revenueData = [];
         let labels = [];
         let omsetData = [];
         let labaData = [];
@@ -222,6 +164,7 @@ app.get('/api/revenue-profit', async (req, res) => {
         } else {
             console.log(`✅ Found ${results.length} records`);
             results.forEach(row => {
+                revenueData.push(Math.round(row.total_revenue || 0));
                 labels.push(row.bulan); // '2025-06', '2025-07', dll.
                 omsetData.push(Math.round(row.total_omset || 0));
                 labaData.push(Math.round(row.total_laba || 0));
@@ -231,6 +174,7 @@ app.get('/api/revenue-profit', async (req, res) => {
         }
         
         res.json({
+            total_revenue: totalRevenue,
             labels,
             omset: omsetData,
             laba: labaData,
@@ -253,204 +197,6 @@ app.get('/api/revenue-profit', async (req, res) => {
             laba: labaData,
             error: 'Using fallback data: ' + error.message
         });
-    }
-});
-
-// Monthly comparison endpoint
-app.get('/api/monthly-comparison', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                MONTH(tgl_jual) as month,
-                YEAR(tgl_jual) as year,
-                SUM(grand_total) as total
-            FROM penjualan_fix 
-            WHERE tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY YEAR(tgl_jual), MONTH(tgl_jual)
-            ORDER BY year, month
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No monthly data found');
-        }
-        
-        const labels = results.map(row => {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-            return monthNames[row.month - 1];
-        });
-        
-        const data = results.map(row => Math.round(row.total / 1000000));
-        
-        res.json({ labels, data });
-    } catch (error) {
-        console.error('Monthly comparison API error:', error);
-        res.json({
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-            data: [120, 150, 180, 200, 170, 190]
-        });
-    }
-});
-
-// Top products endpoint
-app.get('/api/top-products', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                p.nm_brg as product_name,
-                SUM(pd.jumlah) as total_sold
-            FROM penjualan_det pd
-            JOIN produk p ON pd.kd_brg = p.kd_brg
-            JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
-            WHERE pf.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            GROUP BY p.kd_brg, p.nm_brg
-            ORDER BY total_sold DESC
-            LIMIT 5
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No product data found');
-        }
-        
-        const labels = results.map(row => row.product_name);
-        const data = results.map(row => parseInt(row.total_sold));
-        
-        res.json({ labels, data });
-    } catch (error) {
-        console.error('Top products API error:', error);
-        res.json({
-            labels: ['Headphone', 'Sepatu', 'Kemeja', 'Smartphone Case', 'Tas Ransel'],
-            data: [157, 134, 112, 98, 76]
-        });
-    }
-});
-
-// Stock analysis endpoint
-app.get('/api/stock-analysis', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                CASE 
-                    WHEN (stok_toko + stok_gudang) = 0 THEN 'Stok Habis'
-                    WHEN (stok_toko + stok_gudang) < stok_minimal AND stok_minimal > 0 THEN 'Stok Menipis'
-                    WHEN (stok_toko + stok_gudang) > (stok_minimal * 3) THEN 'Overstock'
-                    ELSE 'Stok Normal'
-                END as status,
-                COUNT(*) as count
-            FROM produk
-            GROUP BY status
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No stock data found');
-        }
-        
-        const labels = results.map(row => row.status);
-        const data = results.map(row => parseInt(row.count));
-        
-        res.json({ labels, data });
-    } catch (error) {
-        console.error('Stock analysis API error:', error);
-        res.json({
-            labels: ['Stok Normal', 'Stok Menipis', 'Stok Habis', 'Overstock'],
-            data: [60, 25, 10, 5]
-        });
-    }
-});
-
-// Recent transactions endpoint
-app.get('/api/recent-transactions', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                pf.no_faktur_jual as transaction_id,
-                pf.nm_pelanggan as customer_name,
-                p.nm_brg as product_name,
-                pf.grand_total as total,
-                'Selesai' as status,
-                TIME(pf.tgl_jual) as time
-            FROM penjualan_fix pf
-            LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
-            LEFT JOIN produk p ON pd.kd_brg = p.kd_brg
-            WHERE DATE(pf.tgl_jual) = CURDATE()
-            ORDER BY pf.tgl_jual DESC
-            LIMIT 10
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No transaction data found');
-        }
-        
-        res.json(results);
-    } catch (error) {
-        console.error('Recent transactions API error:', error);
-        res.json([
-            {
-                transaction_id: '#TRX001234',
-                customer_name: 'Budi Santoso',
-                product_name: 'Headphone Wireless',
-                total: 250000,
-                status: 'Selesai',
-                time: '10:30:00'
-            },
-            {
-                transaction_id: '#TRX001235',
-                customer_name: 'Siti Nurhaliza',
-                product_name: 'Sepatu Olahraga',
-                total: 450000,
-                status: 'Proses',
-                time: '10:25:00'
-            }
-        ]);
-    }
-});
-
-// Top selling products endpoint
-app.get('/api/top-selling-products', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                p.nm_brg as product_name,
-                p.kat_brg as category,
-                (p.stok_toko + p.stok_gudang) as stock,
-                SUM(pd.jumlah) as sold,
-                SUM(pd.total) as revenue
-            FROM penjualan_det pd
-            JOIN produk p ON pd.kd_brg = p.kd_brg
-            JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
-            WHERE pf.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            GROUP BY p.kd_brg, p.nm_brg, p.kat_brg, p.stok_toko, p.stok_gudang
-            ORDER BY sold DESC
-            LIMIT 10
-        `;
-        const results = await executeQuery(query);
-        
-        if (results.length === 0) {
-            throw new Error('No selling products data found');
-        }
-        
-        res.json(results);
-    } catch (error) {
-        console.error('Top selling products API error:', error);
-        res.json([
-            {
-                product_name: 'Headphone Wireless',
-                category: 'Elektronik',
-                stock: 23,
-                sold: 157,
-                revenue: 15700000
-            },
-            {
-                product_name: 'Sepatu Olahraga',
-                category: 'Fashion',
-                stock: 145,
-                sold: 134,
-                revenue: 13400000
-            }
-        ]);
     }
 });
 

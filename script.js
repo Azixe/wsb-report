@@ -183,212 +183,6 @@ function initCharts() {
     });
     chartInstances = {};
     
-    // Sales Chart
-    const salesCtx = document.getElementById('salesChart');
-    if (salesCtx) {
-        chartInstances.salesChart = new Chart(salesCtx, {
-            type: 'line',
-            data: {
-                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-                datasets: [{
-                    label: 'Penjualan (Juta Rp)',
-                    data: [12, 19, 15, 25, 22, 18, 20],
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#3498db',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return 'Rp ' + value + 'M';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                },
-                elements: {
-                    point: {
-                        hoverBackgroundColor: '#2980b9'
-                    }
-                }
-            }
-        });
-    }
-    
-    // Category Chart
-    const categoryCtx = document.getElementById('categoryChart');
-    if (categoryCtx) {
-        chartInstances.categoryChart = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Elektronik', 'Fashion', 'Aksesoris', 'Olahraga', 'Lainnya'],
-                datasets: [{
-                    data: [35, 25, 20, 15, 5],
-                    backgroundColor: [
-                        '#3498db',
-                        '#2ecc71',
-                        '#f39c12',
-                        '#e74c3c',
-                        '#9b59b6'
-                    ],
-                    borderWidth: 0,
-                    hoverBorderWidth: 2,
-                    hoverBorderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    }
-                },
-                cutout: '60%'
-            }
-        });
-    }
-    
-    // Monthly Comparison Chart
-    const monthlyCtx = document.getElementById('monthlyChart');
-    if (monthlyCtx) {
-        chartInstances.monthlyChart = new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-                datasets: [{
-                    label: 'Bulan Ini',
-                    data: [120, 150, 180, 200, 170, 190],
-                    backgroundColor: '#3498db',
-                }, {
-                    label: 'Bulan Lalu',
-                    data: [100, 130, 160, 180, 160, 170],
-                    backgroundColor: '#95a5a6',
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return 'Rp ' + value + 'M';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Top Products Chart
-    const topProductsCtx = document.getElementById('topProductsChart');
-    if (topProductsCtx) {
-        chartInstances.topProductsChart = new Chart(topProductsCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Headphone', 'Sepatu', 'Kemeja', 'Smartphone Case', 'Tas Ransel'],
-                datasets: [{
-                    label: 'Penjualan',
-                    data: [157, 134, 112, 98, 76],
-                    backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6'],
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    
-    // Stock Analysis Chart
-    const stockCtx = document.getElementById('stockAnalysisChart');
-    if (stockCtx) {
-        chartInstances.stockChart = new Chart(stockCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Stok Normal', 'Stok Menipis', 'Stok Habis', 'Overstock'],
-                datasets: [{
-                    data: [60, 25, 10, 5],
-                    backgroundColor: ['#2ecc71', '#f39c12', '#e74c3c', '#3498db']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
-    }
-    
     // Revenue & Profit Chart
     const revenueProfitCtx = document.getElementById('revenueProfitChart');
     if (revenueProfitCtx) {
@@ -504,40 +298,20 @@ function startRealTimeUpdates() {
     }, 30000); // Update every 30 seconds
 }
 
-function updateNotificationBadge() {
-    const badge = document.querySelector('.notification-badge');
-    if (badge) {
-        const currentCount = parseInt(badge.textContent);
-        const newCount = Math.max(0, currentCount + Math.floor(Math.random() * 3) - 1);
-        badge.textContent = newCount;
+// function updateNotificationBadge() {
+//     const badge = document.querySelector('.notification-badge');
+//     if (badge) {
+//         const currentCount = parseInt(badge.textContent);
+//         const newCount = Math.max(0, currentCount + Math.floor(Math.random() * 3) - 1);
+//         badge.textContent = newCount;
         
-        if (newCount === 0) {
-            badge.style.display = 'none';
-        } else {
-            badge.style.display = 'block';
-        }
-    }
-}
-
-function updateStockAlerts() {
-    const stockCard = document.querySelector('.stat-icon.stock').parentElement;
-    const stockCount = stockCard.querySelector('h3');
-    const currentStock = parseInt(stockCount.textContent);
-    const newStock = Math.max(0, currentStock + Math.floor(Math.random() * 5) - 2);
-    
-    stockCount.textContent = newStock;
-    
-    if (newStock > 50) {
-        stockCard.querySelector('.stat-change').textContent = 'Normal';
-        stockCard.querySelector('.stat-change').className = 'stat-change positive';
-    } else if (newStock > 20) {
-        stockCard.querySelector('.stat-change').textContent = 'Perlu Perhatian';
-        stockCard.querySelector('.stat-change').className = 'stat-change neutral';
-    } else {
-        stockCard.querySelector('.stat-change').textContent = 'Kritis';
-        stockCard.querySelector('.stat-change').className = 'stat-change negative';
-    }
-}
+//         if (newCount === 0) {
+//             badge.style.display = 'none';
+//         } else {
+//             badge.style.display = 'block';
+//         }
+//     }
+// }
 
 function animateElements() {
     // Animate stats cards
@@ -562,21 +336,20 @@ function formatCurrency(value) {
 }
 
 // Functions to load and handle dashboard data
-async function loadDashboardData() {
+async function loadDashboardData(startDate = null, endDate = null) {
     try {
         console.log('Loading dashboard data...');
         showNotification('Memuat data dari database...', 'info');
+
+        const params = {};
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        }
         
         // Load all data in parallel
-        const [stats, salesTrend, categorySales, monthlyComparison, topProducts, stockAnalysis, recentTransactions, topSellingProducts] = await Promise.all([
-            fetchAPI('stats'),
-            fetchAPI('sales-trend'),
-            fetchAPI('category-sales'),
-            fetchAPI('monthly-comparison'),
-            fetchAPI('top-products'),
-            fetchAPI('stock-analysis'),
-            fetchAPI('recent-transactions'),
-            fetchAPI('top-selling-products')
+        const [stats] = await Promise.all([
+            fetchAPI('revenue-profit', params),
         ]);
         
         console.log('All data loaded, updating UI...');
@@ -597,7 +370,7 @@ async function loadDashboardData() {
         }
         
         // Load initial revenue/profit data
-        await loadRevenueProfitData();
+        await loadRevenueProfitData(startDate, endDate);
         
         console.log('Dashboard data loading completed');
         showNotification('Data berhasil dimuat!', 'success');
@@ -615,28 +388,7 @@ function updateStatsCards(stats) {
     if (statCards[0]) {
         const revenueElement = statCards[0].querySelector('h3');
         if (revenueElement) {
-            revenueElement.textContent = formatCurrency(stats?.revenue || 125450000);
-        }
-    }
-    
-    if (statCards[1]) {
-        const productsElement = statCards[1].querySelector('h3');
-        if (productsElement) {
-            productsElement.textContent = (stats?.products || 1247).toLocaleString('id-ID');
-        }
-    }
-    
-    if (statCards[2]) {
-        const ordersElement = statCards[2].querySelector('h3');
-        if (ordersElement) {
-            ordersElement.textContent = (stats?.orders || 324).toLocaleString('id-ID');
-        }
-    }
-    
-    if (statCards[3]) {
-        const stockElement = statCards[3].querySelector('h3');
-        if (stockElement) {
-            stockElement.textContent = (stats?.low_stock || 42).toLocaleString('id-ID');
+            revenueElement.textContent = formatCurrency(stats?.total_revenue || 125450000);
         }
     }
 }
@@ -670,6 +422,7 @@ function initDateRange() {
                 return;
             }
             
+            loadDashboardData(start, end);
             loadRevenueProfitData(start, end);
             loadRevenueProfitDataTabels(start, end);
             showNotification(`Memuat data dari ${start} sampai ${end}`, 'info');
@@ -798,57 +551,6 @@ function updateCharts(salesTrend, categorySales, monthlyComparison, topProducts,
     // Update existing charts with new data
     console.log('Updating charts with real data');
     // The existing initCharts function will handle fallback data
-}
-
-function updateTopProductsTable(topSellingProducts) {
-    const tbody = document.querySelector('.table-container:first-child .data-table tbody');
-    if (tbody && topSellingProducts && topSellingProducts.length > 0) {
-        tbody.innerHTML = '';
-        
-        topSellingProducts.forEach(product => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <div class="product-info">
-                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=40&h=40&fit=crop" alt="Product">
-                        <span>${product.nama_produk || 'Produk'}</span>
-                    </div>
-                </td>
-                <td>${product.kategori || 'Umum'}</td>
-                <td><span class="stock-badge ${getStockBadgeClass(product.total_stock || 0)}">${product.total_stock || 0}</span></td>
-                <td>${product.total_sold || 0}</td>
-                <td>${formatCurrency(product.total_revenue || 0)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-}
-
-function updateRecentTransactionsTable(recentTransactions) {
-    const tbody = document.querySelector('.table-container:nth-child(2) .data-table tbody');
-    if (tbody && recentTransactions && recentTransactions.length > 0) {
-        tbody.innerHTML = '';
-        
-        recentTransactions.forEach(transaction => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${transaction.no_faktur_jual || '#TRX000000'}</td>
-                <td>${transaction.kd_pelanggan || 'Customer'}</td>
-                <td>${truncateText(transaction.nama_produk || 'Produk', 20)}</td>
-                <td>${formatCurrency(transaction.grand_total || 0)}</td>
-                <td><span class="status-badge completed">Selesai</span></td>
-                <td>${formatTime(transaction.tgl_jual)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-}
-
-function getStockBadgeClass(stock) {
-    if (stock === 0) return 'low';
-    if (stock < 50) return 'low';
-    if (stock < 100) return 'medium';
-    return 'high';
 }
 
 function truncateText(text, maxLength) {

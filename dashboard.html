@@ -52,7 +52,7 @@
                 <h1>Dashboard Laporan</h1>
             </div>
             
-            <div class="header-right">
+            <!-- <div class="header-right">
                 <div class="header-actions">
                     <button class="export-btn" onclick="showExportOptions()">
                         <i class="fas fa-download"></i>
@@ -62,7 +62,7 @@
                     <button class="notification-btn">
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge">3</span>
-                    </button>
+                    </button> -->
                     
                     <div class="user-profile">
                         <i class="fas fa-user-circle" style="font-size: 40px; color: #666;"></i>
@@ -85,45 +85,10 @@
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Rp 125,450,000</h3>
+                        <h3>Rp 0</h3>
                         <p>Total Pendapatan</p>
-                        <span class="stat-change positive">+12.5%</span>
                     </div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon products">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>1,247</h3>
-                        <p>Total Produk</p>
-                        <span class="stat-change positive">+8.2%</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon orders">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>324</h3>
-                        <p>Pesanan Hari Ini</p>
-                        <span class="stat-change negative">-3.1%</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon stock">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>42</h3>
-                        <p>Stok Menipis</p>
-                        <span class="stat-change neutral">Perlu Perhatian</span>
-                    </div>
-                </div>
-            </div>
             
             <!-- Charts Section -->
             <div class="charts-section">
@@ -140,61 +105,6 @@
                     </div>
                     <canvas id="revenueProfitChart"></canvas>
                 </div>
-                
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Tren Penjualan</h3>
-                        <div class="chart-controls">
-                            <select id="salesPeriod">
-                                <option value="7days">7 Hari Terakhir</option>
-                                <option value="30days">30 Hari Terakhir</option>
-                                <option value="3months">3 Bulan Terakhir</option>
-                                <option value="6months">6 Bulan Terakhir</option>
-                                <option value="1year">1 Tahun Terakhir</option>
-                            </select>
-                        </div>
-                    </div>
-                    <canvas id="salesChart"></canvas>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Kategori Produk Terlaris</h3>
-                    </div>
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Additional Reports Section -->
-            <div class="reports-grid">
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Perbandingan Bulanan</h3>
-                        <div class="chart-controls">
-                            <select id="monthlyComparison">
-                                <option value="revenue">Pendapatan</option>
-                                <option value="quantity">Kuantitas Terjual</option>
-                                <option value="profit">Keuntungan</option>
-                            </select>
-                        </div>
-                    </div>
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Top 10 Produk</h3>
-                    </div>
-                    <canvas id="topProductsChart"></canvas>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Analisis Stok</h3>
-                    </div>
-                    <canvas id="stockAnalysisChart"></canvas>
-                </div>
-            </div>
             
             
             <!-- Tables Section -->
@@ -219,153 +129,6 @@
                 </div>
             </div>
             <canvas id="table-margin"></canvas>
-            <div class="tables-section">
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>Produk Terlaris</h3>
-                        <a href="#" class="view-all">Lihat Semua</a>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Produk</th>
-                                    <th>Kategori</th>
-                                    <th>Stok</th>
-                                    <th>Terjual</th>
-                                    <th>Pendapatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="product-info">
-                                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=40&h=40&fit=crop" alt="Product">
-                                            <span>Headphone Wireless</span>
-                                        </div>
-                                    </td>
-                                    <td>Elektronik</td>
-                                    <td><span class="stock-badge low">23</span></td>
-                                    <td>157</td>
-                                    <td>Rp 15,700,000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-info">
-                                            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=40&h=40&fit=crop" alt="Product">
-                                            <span>Sepatu Olahraga</span>
-                                        </div>
-                                    </td>
-                                    <td>Fashion</td>
-                                    <td><span class="stock-badge medium">145</span></td>
-                                    <td>134</td>
-                                    <td>Rp 13,400,000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-info">
-                                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop" alt="Product">
-                                            <span>Kemeja Casual</span>
-                                        </div>
-                                    </td>
-                                    <td>Fashion</td>
-                                    <td><span class="stock-badge high">89</span></td>
-                                    <td>112</td>
-                                    <td>Rp 8,960,000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-info">
-                                            <img src="https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=40&h=40&fit=crop" alt="Product">
-                                            <span>Smartphone Case</span>
-                                        </div>
-                                    </td>
-                                    <td>Aksesoris</td>
-                                    <td><span class="stock-badge medium">67</span></td>
-                                    <td>98</td>
-                                    <td>Rp 4,900,000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-info">
-                                            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=40&h=40&fit=crop" alt="Product">
-                                            <span>Tas Ransel</span>
-                                        </div>
-                                    </td>
-                                    <td>Fashion</td>
-                                    <td><span class="stock-badge low">34</span></td>
-                                    <td>76</td>
-                                    <td>Rp 7,600,000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>Transaksi Terbaru</h3>
-                        <a href="#" class="view-all">Lihat Semua</a>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID Transaksi</th>
-                                    <th>Pelanggan</th>
-                                    <th>Produk</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Waktu</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>#TRX001234</td>
-                                    <td>Budi Santoso</td>
-                                    <td>Headphone Wireless</td>
-                                    <td>Rp 250,000</td>
-                                    <td><span class="status-badge completed">Selesai</span></td>
-                                    <td>10:30 AM</td>
-                                </tr>
-                                <tr>
-                                    <td>#TRX001235</td>
-                                    <td>Siti Nurhaliza</td>
-                                    <td>Sepatu Olahraga</td>
-                                    <td>Rp 450,000</td>
-                                    <td><span class="status-badge pending">Proses</span></td>
-                                    <td>10:25 AM</td>
-                                </tr>
-                                <tr>
-                                    <td>#TRX001236</td>
-                                    <td>Ahmad Wijaya</td>
-                                    <td>Kemeja Casual</td>
-                                    <td>Rp 180,000</td>
-                                    <td><span class="status-badge completed">Selesai</span></td>
-                                    <td>10:15 AM</td>
-                                </tr>
-                                <tr>
-                                    <td>#TRX001237</td>
-                                    <td>Maya Sari</td>
-                                    <td>Smartphone Case</td>
-                                    <td>Rp 85,000</td>
-                                    <td><span class="status-badge cancelled">Dibatalkan</span></td>
-                                    <td>10:05 AM</td>
-                                </tr>
-                                <tr>
-                                    <td>#TRX001238</td>
-                                    <td>Dedi Kurniawan</td>
-                                    <td>Tas Ransel</td>
-                                    <td>Rp 320,000</td>
-                                    <td><span class="status-badge completed">Selesai</span></td>
-                                    <td>09:55 AM</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
     
     <script src="script.js"></script>
