@@ -188,19 +188,23 @@ app.get('/api/revenue-profit', async (req, res) => {
         console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}`);
         
         const query = `
-            select DATE_FORMAT(tgl_jual, '%Y-%m') as bulan, 
-            sum((netto - h_beli) * (jumlah - retur)) as total_laba, 
-            sum(total) as total_omset from penjualan_det 
-            WHERE tgl_jual BETWEEN ? AND ?
-            group by DATE_FORMAT(tgl_jual, '%Y-%m') 
-            order by bulan
+            SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota 
+            FROM (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, SUM((netto - h_beli) * (jumlah - retur)) AS total_laba, 
+            SUM(total) AS total_omset FROM penjualan_det where tgl_jual BETWEEN ? AND ? 
+            GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS a 
+            LEFT JOIN (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, 
+            COUNT(no_faktur_jual) AS jumlah_faktur FROM penjualan_fix where tgl_jual BETWEEN ? AND ? 
+            GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS b 
+            ON a.bulan = b.bulan 
+            ORDER BY a.bulan
         `;
         
-        const results = await executeQuery(query, [startDate, endDate]);
+        const results = await executeQuery(query, [startDate, endDate, startDate, endDate]);
         
         let labels = [];
         let omsetData = [];
         let labaData = [];
+        let notaData = [];
         
         if (results.length === 0) {
             console.log('🔄 No data found, generating fallback data');
@@ -221,6 +225,7 @@ app.get('/api/revenue-profit', async (req, res) => {
                 labels.push(row.bulan); // '2025-06', '2025-07', dll.
                 omsetData.push(Math.round(row.total_omset || 0));
                 labaData.push(Math.round(row.total_laba || 0));
+                notaData.push(Math.round(row.jumlah_nota || 0));
             });
 
         }
@@ -229,6 +234,7 @@ app.get('/api/revenue-profit', async (req, res) => {
             labels,
             omset: omsetData,
             laba: labaData,
+            jumlah_nota: notaData,
             date_range: {
                 start: startDate,
                 end: endDate

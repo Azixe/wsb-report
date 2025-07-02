@@ -776,11 +776,13 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
         data.labels.forEach((bulan, index) => {
             const omset = data.omset[index] || 0;
             const laba = data.laba[index] || 0;
+            const nota = data.jumlah_nota[index] || 0;
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${bulan}</td>
                 <td>${formatCurrency(omset)}</td>
                 <td>${formatCurrency(laba)}</td>
+                <td>${(nota)}</td>
             `;
             tableBody.appendChild(tr);
         });
