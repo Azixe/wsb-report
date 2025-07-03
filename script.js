@@ -569,6 +569,8 @@ function formatTime(dateString) {
 
 // Utility Functions
 function showNotification(message, type = 'info') {
+    console.log('Showing notification:', message, 'Type:', type);
+    
     // Remove existing notifications
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
@@ -588,7 +590,8 @@ function showNotification(message, type = 'info') {
     notification.style.cssText = `
         position: fixed;
         top: 20px;
-        right: 20px;
+        left: 50%;
+        transform: translateX(-50%);
         background: ${getNotificationColor(type)};
         color: white;
         padding: 15px 20px;
@@ -596,20 +599,57 @@ function showNotification(message, type = 'info') {
         display: flex;
         align-items: center;
         gap: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        min-width: 300px;
-        animation: slideInRight 0.3s ease-out;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 99999;
+        min-width: 320px;
+        max-width: 500px;
+        animation: slideInDown 0.3s ease-out;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
     `;
+    
+    // Responsive positioning for mobile
+    if (window.innerWidth <= 768) {
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 15px;
+            right: 15px;
+            transform: none;
+            background: ${getNotificationColor(type)};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 99999;
+            animation: slideInDown 0.3s ease-out;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+        `;
+    }
     
     // Add notification to page
     document.body.appendChild(notification);
+    console.log('Notification added to body:', notification);
+    
+    // Force a reflow to ensure the notification is rendered
+    notification.offsetHeight;
     
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.3s ease-in';
-            setTimeout(() => notification.remove(), 300);
+            notification.style.animation = 'slideOutUp 0.3s ease-in';
+            setTimeout(() => {
+                notification.remove();
+                console.log('Notification removed');
+            }, 300);
         }
     }, 5000);
 }
@@ -674,6 +714,28 @@ window.addEventListener('resize', handleResize);
 // Add CSS animations
 const style = document.createElement('style');
 style.textContent = `
+    @keyframes slideInDown {
+        from { 
+            transform: translateX(-50%) translateY(-100%); 
+            opacity: 0; 
+        }
+        to { 
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1; 
+        }
+    }
+    
+    @keyframes slideOutUp {
+        from { 
+            transform: translateX(-50%) translateY(0); 
+            opacity: 1; 
+        }
+        to { 
+            transform: translateX(-50%) translateY(-100%); 
+            opacity: 0; 
+        }
+    }
+    
     @keyframes slideInRight {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -697,10 +759,49 @@ style.textContent = `
         cursor: pointer;
         opacity: 0.7;
         transition: opacity 0.3s ease;
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .notification-close:hover {
         opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    /* Make sure notification is on top of everything */
+    .notification {
+        position: fixed !important;
+        z-index: 999999 !important;
+    }
+    
+    /* Mobile specific animations */
+    @media (max-width: 768px) {
+        @keyframes slideInDown {
+            from { 
+                transform: translateY(-100%); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+            to { 
+                transform: translateY(-100%); 
+                opacity: 0; 
+            }
+        }
     }
 `;
 document.head.appendChild(style);
@@ -710,70 +811,3 @@ document.addEventListener('DOMContentLoaded', function() {
     initSearch();
     loadRevenueProfitDataTabels();
 });
-
-// Export functionality
-function showExportOptions() {
-    const exportModal = `
-        <div class="export-modal" onclick="closeExportModal(event)">
-            <div class="export-content">
-                <div class="export-header">
-                    <h3>Export Laporan</h3>
-                    <button onclick="closeExportModal()" class="close-btn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="export-options">
-                    <div class="export-option" onclick="exportReport('pdf')">
-                        <i class="fas fa-file-pdf"></i>
-                        <div>
-                            <h4>PDF Report</h4>
-                            <p>Ekspor laporan dalam format PDF</p>
-                        </div>
-                    </div>
-                    <div class="export-option" onclick="exportReport('excel')">
-                        <i class="fas fa-file-excel"></i>
-                        <div>
-                            <h4>Excel Spreadsheet</h4>
-                            <p>Ekspor data dalam format Excel</p>
-                        </div>
-                    </div>
-                    <div class="export-option" onclick="exportReport('csv')">
-                        <i class="fas fa-file-csv"></i>
-                        <div>
-                            <h4>CSV Data</h4>
-                            <p>Ekspor data mentah dalam format CSV</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', exportModal);
-}
-
-function closeExportModal(event) {
-    if (!event || event.target.classList.contains('export-modal') || event.target.classList.contains('close-btn') || event.target.classList.contains('fa-times')) {
-        const modal = document.querySelector('.export-modal');
-        if (modal) {
-            modal.remove();
-        }
-    }
-}
-
-function exportReport(format) {
-    closeExportModal();
-    
-    const formatNames = {
-        'pdf': 'PDF',
-        'excel': 'Excel',
-        'csv': 'CSV'
-    };
-    
-    showNotification(`Mengekspor laporan dalam format ${formatNames[format]}...`, 'info');
-    
-    // Simulate export process
-    setTimeout(() => {
-        showNotification(`Laporan ${formatNames[format]} berhasil diunduh!`, 'success');
-    }, 2000);
-}
