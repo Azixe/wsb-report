@@ -66,3 +66,10 @@ Thumbs.db
 uploads/
 temp/
 *.tmp
+
+# Database documentation and reference files
+db_structure_referrence/
+database_reference/
+*.sql
+schema.sql
+database_docs/
