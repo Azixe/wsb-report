@@ -392,12 +392,37 @@ async function loadDashboardData(startDate = null, endDate = null) {
 
 function updateStatsCards(stats) {
     console.log('Updating stats cards with:', stats);
-    const statCards = document.querySelectorAll('.stat-card');
     
-    if (statCards[0]) {
-        const revenueElement = statCards[0].querySelector('h3');
+    // Update revenue card (separate element)
+    const revenueCard = document.querySelector('.revenue-card');
+    if (revenueCard) {
+        const revenueElement = revenueCard.querySelector('h3');
         if (revenueElement) {
             revenueElement.textContent = formatCurrency(stats?.total_revenue || 125450000);
+        }
+    }
+    
+    // Update other stat cards
+    const statCards = document.querySelectorAll('.stats-grid .stat-card');
+    
+    if (statCards[0]) {
+        const productsElement = statCards[0].querySelector('h3');
+        if (productsElement) {
+            productsElement.textContent = stats?.total_products || 0;
+        }
+    }
+    
+    if (statCards[1]) {
+        const ordersElement = statCards[1].querySelector('h3');
+        if (ordersElement) {
+            ordersElement.textContent = stats?.today_orders || 0;
+        }
+    }
+    
+    if (statCards[2]) {
+        const lowStockElement = statCards[2].querySelector('h3');
+        if (lowStockElement) {
+            lowStockElement.textContent = stats?.low_stock || 0;
         }
     }
 }
