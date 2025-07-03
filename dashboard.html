@@ -90,43 +90,77 @@
                         <p>Total Pendapatan</p>
                     </div>
                 </div>
-            
-            <!-- Charts Section -->
-            <div class="charts-section">
-                <!-- Revenue and Profit Chart -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Omset & Laba</h3>
-                        <div class="chart-controls">
-                            <input type="date" id="startDate" class="date-input">
-                            <span>-</span>
-                            <input type="date" id="endDate" class="date-input">
-                            <button id="applyDateRange" class="apply-btn">Terapkan</button>
-                        </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon products">
+                        <i class="fas fa-box"></i>
                     </div>
-                    <canvas id="revenueProfitChart"></canvas>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Total Produk</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Pesanan Hari Ini</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Stok Menipis</p>
+                    </div>
                 </div>
             </div>
             
-            
-            <!-- Tables Section -->
-            <div class="tables-section">
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2>Data Omset dan Laba</h2>
+            <!-- Chart and Table Layout -->
+            <div class="content-grid">
+                <!-- Charts Section -->
+                <div class="chart-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Omset & Laba</h3>
+                            <div class="chart-controls">
+                                <input type="date" id="startDate" class="date-input">
+                                <span>-</span>
+                                <input type="date" id="endDate" class="date-input">
+                                <button id="applyDateRange" class="apply-btn">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="revenueProfitChart"></canvas>
+                        </div>
                     </div>
-                    <div class="table-wrapper">
-                        <table id="RevenueProfitTable" class="data-table">
+                </div>
+                
+                <!-- Tables Section -->
+                <div class="table-section">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>Data Omset dan Laba</h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="RevenueProfitTable" class="data-table">
                                 <thead>
-                                <tr>
-                                    <th>Bulan</th>
-                                    <th>Total Omset</th>
-                                    <th>Total Laba</th>
-                                    <th>Total Nota</th>
-                                </tr>
+                                    <tr>
+                                        <th>Bulan</th>
+                                        <th>Total Omset</th>
+                                        <th>Total Laba</th>
+                                        <th>Total Nota</th>
+                                    </tr>
                                 </thead>
                                 <tbody></tbody>
-                        </table>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
