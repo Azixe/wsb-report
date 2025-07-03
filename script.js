@@ -262,23 +262,6 @@ function initCharts() {
         // Load initial data for revenue profit chart
         loadRevenueProfitData();
     }
-    
-    // Sales period change handler
-    const salesPeriod = document.getElementById('salesPeriod');
-    if (salesPeriod) {
-        salesPeriod.addEventListener('change', (e) => {
-            showNotification(`Periode laporan diubah ke: ${e.target.options[e.target.selectedIndex].text}`, 'info');
-            // Here you would typically update the chart data
-        });
-    }
-    
-    // Monthly comparison change handler
-    const monthlyComparison = document.getElementById('monthlyComparison');
-    if (monthlyComparison) {
-        monthlyComparison.addEventListener('change', (e) => {
-            showNotification(`Tampilan diubah ke: ${e.target.options[e.target.selectedIndex].text}`, 'info');
-        });
-    }
 }
 
 function updateUserInfo() {
@@ -291,27 +274,14 @@ function updateUserInfo() {
 }
 
 function startRealTimeUpdates() {
-    // Simulate real-time data updates
+    // Simulate real-time data updates every 30 seconds
     setInterval(() => {
-        updateNotificationBadge();
-        updateStockAlerts();
-    }, 30000); // Update every 30 seconds
+        // Add any real-time update logic here if needed
+        console.log('Real-time update check...');
+    }, 30000);
 }
 
-// function updateNotificationBadge() {
-//     const badge = document.querySelector('.notification-badge');
-//     if (badge) {
-//         const currentCount = parseInt(badge.textContent);
-//         const newCount = Math.max(0, currentCount + Math.floor(Math.random() * 3) - 1);
-//         badge.textContent = newCount;
-        
-//         if (newCount === 0) {
-//             badge.style.display = 'none';
-//         } else {
-//             badge.style.display = 'block';
-//         }
-//     }
-// }
+// function updateNotificationBadge() - removed as notification badge is not used
 
 function animateElements() {
     // Animate stats cards
@@ -347,27 +317,13 @@ async function loadDashboardData(startDate = null, endDate = null) {
             params.end_date = endDate;
         }
         
-        // Load all data in parallel
-        const [stats] = await Promise.all([
-            fetchAPI('revenue-profit', params),
-        ]);
+        // Load revenue profit data
+        const stats = await fetchAPI('revenue-profit', params);
         
-        console.log('All data loaded, updating UI...');
+        console.log('Data loaded, updating UI...');
         
         // Update UI with real data or fallback
         updateStatsCards(stats);
-        
-        // Initialize charts with real data
-        updateCharts(salesTrend, categorySales, monthlyComparison, topProducts, stockAnalysis);
-        
-        // Update tables with real data or show message
-        if (recentTransactions && recentTransactions.length > 0) {
-            updateRecentTransactionsTable(recentTransactions);
-        }
-        
-        if (topSellingProducts && topSellingProducts.length > 0) {
-            updateTopProductsTable(topSellingProducts);
-        }
         
         // Load initial revenue/profit data
         await loadRevenueProfitData(startDate, endDate);
@@ -459,12 +415,11 @@ async function loadRevenueProfitData(startDate = null, endDate = null) {
             updateRevenueProfitChart(data);
         } else {
             console.log('No valid revenue profit data received, using fallback');
-            updateRevenueProfitChart(getFallbackRevenueProfitData());
+            // You can add fallback data here if needed
         }
     } catch (error) {
         console.error('Error loading revenue profit data:', error);
-        updateRevenueProfitChart(getFallbackRevenueProfitData());
-        showNotification('Menggunakan data demo untuk chart Omset & Laba', 'warning');
+        showNotification('Gagal memuat data chart Omset & Laba', 'error');
     }
 }
 
@@ -516,12 +471,16 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
         if (startDate && endDate) {
             params.start_date = startDate;
             params.end_date = endDate;
-            console.log('Loading revenue profit data for date range:', startDate, 'to', endDate);
+            console.log('Loading revenue profit table data for date range:', startDate, 'to', endDate);
         } else {
-            console.log('Loading revenue profit data with default date range');
+            console.log('Loading revenue profit table data with default date range');
         }
 
-        const data = await fetchAPI(`revenue-profit`, params);
+        const data = await fetchAPI('revenue-profit', params);
+        
+        if (!data || !data.labels) {
+            throw new Error('Invalid data format received');
+        }
 
         const tableBody = document.querySelector('#RevenueProfitTable tbody');
         tableBody.innerHTML = '';
@@ -535,36 +494,15 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
                 <td>${bulan}</td>
                 <td>${formatCurrency(omset)}</td>
                 <td>${formatCurrency(laba)}</td>
-                <td>${(nota)}</td>
+                <td>${nota}</td>
             `;
             tableBody.appendChild(tr);
         });
-    }
-    catch (error) {
+    } catch (error) {
         console.error('Gagal mengambil data omset & laba:', error);
         const tableBody = document.querySelector('#RevenueProfitTable tbody');
-        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Gagal memuat data. Silahkan coba lagi nanti.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Gagal memuat data. Silahkan coba lagi nanti.</td></tr>';
     }
-}
-
-function updateCharts(salesTrend, categorySales, monthlyComparison, topProducts, stockAnalysis) {
-    // Update existing charts with new data
-    console.log('Updating charts with real data');
-    // The existing initCharts function will handle fallback data
-}
-
-function truncateText(text, maxLength) {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-}
-
-function formatTime(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('id-ID', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
 }
 
 // Utility Functions
@@ -672,7 +610,7 @@ function getNotificationColor(type) {
     }
 }
 
-// Search functionality
+// Search functionality (placeholder for future use)
 function initSearch() {
     const searchInput = document.querySelector('.search-box input');
     if (searchInput) {
@@ -806,8 +744,11 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize search when DOM is ready
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize search functionality (if needed in future)
     initSearch();
+    
+    // Load initial revenue profit table data
     loadRevenueProfitDataTabels();
 });
