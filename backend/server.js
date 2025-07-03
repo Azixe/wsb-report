@@ -5,12 +5,12 @@ const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 3001;
+const PORT = 3002;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(path.join(__dirname, '..')));
 
 // Database configuration
 const dbConfig = {
@@ -259,7 +259,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Serve static files
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dashboard.html'));
+    res.sendFile(path.join(__dirname, '..', 'dashboard.html'));
 });
 
 // Start server

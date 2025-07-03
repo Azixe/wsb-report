@@ -27,10 +27,16 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
    npm install
    ```
 
-3. **Konfigurasi Database**
+3. **Setup Backend**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+4. **Konfigurasi Database**
    - Pastikan MySQL server berjalan
    - Database `toko` sudah tersedia
-   - Update konfigurasi di `server.js` jika diperlukan:
+   - Update konfigurasi di `backend/server.js` jika diperlukan:
      ```javascript
      const dbConfig = {
          host: 'localhost',
@@ -41,15 +47,21 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
      };
      ```
 
-4. **Jalankan server**
+5. **Jalankan server**
    ```bash
+   cd backend
    npm start
    ```
    
    Atau untuk development mode dengan auto-reload:
    ```bash
+   cd backend
    npm run dev
    ```
+
+6. **Akses Dashboard**
+   - Dashboard: http://localhost:3002
+   - API: http://localhost:3002/api
 
 
 ## 📡 API Endpoints
@@ -178,17 +190,22 @@ Untuk pertanyaan atau saran, silakan buat issue di repository ini.
 
 ```
 wsb-report/
-├── server.js              # Express.js server
-├── package.json           # Dependencies dan scripts
-├── index.html             # Login page
-├── dashboard.html         # Frontend dashboard
-├── script.js              # Frontend JavaScript
-├── css/                   # Modular CSS files
+├── backend/               # Backend Express.js server
+│   ├── server.js          # Main server file
+│   ├── package.json       # Backend dependencies
+│   ├── package-lock.json  # Lock file
+│   ├── node_modules/      # Backend dependencies
+│   └── README.md          # Backend documentation
+├── css/                   # Frontend CSS files
 │   ├── base.css           # Base styles dan variabel
 │   ├── login.css          # Login page styles
 │   └── dashboard-v2.css   # Dashboard styles
-└── imgs/                  # Assets gambar
-    └── LOGO_WSB_blue.png
+├── imgs/                  # Assets gambar
+│   └── LOGO_WSB_blue.png
+├── index.html             # Login page
+├── dashboard.html         # Frontend dashboard
+├── script.js              # Frontend JavaScript
+└── README.md              # Main documentation
 ```
 
 ## 🔧 Troubleshooting
