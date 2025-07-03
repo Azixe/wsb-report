@@ -61,37 +61,67 @@ function initLoginPage() {
     }
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const loginBtn = document.querySelector('.login-btn');
     
-    // Simple validation (in real app, this would be server-side)
-    if (username === 'admin' && password === 'admin123') {
-        // Show loading state
-        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-        loginBtn.disabled = true;
+    if (!username || !password) {
+        showNotification('Username dan password harus diisi!', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const originalText = loginBtn.innerHTML;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    loginBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
         
-        // Simulate login delay
-        setTimeout(() => {
-            // Store login state (in real app, use proper session management)
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Store login state
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
+            localStorage.setItem('username', data.user.username);
+            localStorage.setItem('userLevel', data.user.level);
+            localStorage.setItem('userName', data.user.nama);
             
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        }, 1500);
-    } else {
-        showNotification('Username atau password salah!', 'error');
-        
-        // Shake animation for error
-        const loginCard = document.querySelector('.login-card');
-        loginCard.style.animation = 'shake 0.5s ease-in-out';
-        setTimeout(() => {
-            loginCard.style.animation = '';
-        }, 500);
+            showNotification('Login berhasil! Mengalihkan ke dashboard...', 'success');
+            
+            // Redirect to dashboard after short delay
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Username atau password salah!', 'error');
+            
+            // Shake animation for error
+            const loginCard = document.querySelector('.login-card');
+            loginCard.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => {
+                loginCard.style.animation = '';
+            }, 500);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showNotification('Gagal terhubung ke server. Pastikan server berjalan.', 'error');
+    } finally {
+        // Reset button
+        loginBtn.innerHTML = originalText;
+        loginBtn.disabled = false;
     }
 }
 
@@ -266,11 +296,36 @@ function initCharts() {
 
 function updateUserInfo() {
     const username = localStorage.getItem('username');
+    const userName = localStorage.getItem('userName');
+    const userLevel = localStorage.getItem('userLevel');
     const userNameElement = document.querySelector('.user-name');
     
-    if (userNameElement && username) {
-        userNameElement.textContent = username;
+    if (userNameElement) {
+        // Use nama if available, otherwise use username
+        const displayName = userName || username;
+        userNameElement.textContent = displayName || 'User';
     }
+    
+    // Update user level if there's an element for it
+    const userLevelElement = document.querySelector('.user-level');
+    if (userLevelElement && userLevel) {
+        userLevelElement.textContent = userLevel;
+    }
+}
+
+function logout() {
+    // Clear login state
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userLevel');
+    
+    showNotification('Logout berhasil', 'success');
+    
+    // Redirect to login page
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
 }
 
 function startRealTimeUpdates() {
@@ -280,8 +335,6 @@ function startRealTimeUpdates() {
         console.log('Real-time update check...');
     }, 30000);
 }
-
-// function updateNotificationBadge() - removed as notification badge is not used
 
 function animateElements() {
     // Animate stats cards

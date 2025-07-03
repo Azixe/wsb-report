@@ -109,7 +109,7 @@ GET /api/revenue-profit?start_date=2024-06-01&end_date=2024-06-30
 ## Customization
 
 ### Mengubah Warna Tema
-Edit variabel CSS di file `style.css`:
+Edit variabel CSS di file `css/base.css`:
 ```css
 :root {
     --primary-color: #3498db;
@@ -179,12 +179,14 @@ Untuk pertanyaan atau saran, silakan buat issue di repository ini.
 ```
 wsb-report/
 ├── server.js              # Express.js server
-├── package.json            # Dependencies dan scripts
-├── dashboard.html          # Frontend dashboard
-├── style.css              # Styling
+├── package.json           # Dependencies dan scripts
+├── index.html             # Login page
+├── dashboard.html         # Frontend dashboard
 ├── script.js              # Frontend JavaScript
-├── api.php                # PHP API (legacy, bisa dihapus)
-├── test-revenue-profit.html # Testing tool
+├── css/                   # Modular CSS files
+│   ├── base.css           # Base styles dan variabel
+│   ├── login.css          # Login page styles
+│   └── dashboard-v2.css   # Dashboard styles
 └── imgs/                  # Assets gambar
     └── LOGO_WSB_blue.png
 ```
