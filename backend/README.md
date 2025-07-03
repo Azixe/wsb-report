@@ -22,7 +22,7 @@ npm start
 node server.js
 ```
 
-Server akan berjalan di: `http://localhost:3001`
+Server akan berjalan di: `http://localhost:3002`
 
 ## 📁 Struktur File
 
@@ -50,12 +50,14 @@ backend/
 
 ## 🗄️ Database Configuration
 
-Server menggunakan MySQL dengan konfigurasi:
+Server menggunakan MySQL dengan konfigurasi default:
 - Host: localhost
 - Port: 3306
 - Database: toko
 - User: root
-- Password: (kosong)
+- Password: (sesuaikan dengan setup MySQL Anda)
+
+*Edit konfigurasi database di file `server.js` sesuai dengan setup lokal Anda.*
 
 ### Tabel yang Digunakan
 - `user` - Data user untuk login
@@ -67,7 +69,7 @@ Server menggunakan MySQL dengan konfigurasi:
 ### Development
 ```bash
 NODE_ENV=development
-PORT=3001
+PORT=3002
 ```
 
 ### Production
@@ -93,7 +95,7 @@ Pastikan untuk mengatur:
 - Pastikan database `toko` exists
 
 ### Port Already in Use
-- Ganti PORT di `server.js` jika port 3001 sudah digunakan
+- Ganti PORT di `server.js` jika port 3002 sudah digunakan
 - Update `API_BASE` di frontend sesuai port baru
 
 ### CORS Issues

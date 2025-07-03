@@ -1,14 +1,16 @@
 # WSB Report Dashboard
 
-Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript.
+Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript yang terhubung ke database MySQL.
 
 ## 🚀 Fitur
 
-- **📊 Bar Chart Omset & Laba** dengan filter rentang tanggal
-- **📈 Dashboard Analytics** lengkap dengan berbagai chart dan tabel
-- **🔗 Koneksi Database MySQL** untuk data real-time
-- **📱 Responsive Design** yang berfungsi di desktop dan mobile
-- **🎨 Modern UI/UX** dengan design yang clean dan professional
+- **� Sistem Login** dengan autentikasi database (MD5 hash)
+- **� Revenue Card Premium** dengan row terpisah untuk nominal besar
+- **� Chart Omset & Laba** dengan filter rentang tanggal real-time
+- **📱 Layout Responsif** - Chart dan tabel side-by-side di desktop, stack di mobile
+- **🗄️ Database Integration** dengan MySQL untuk data real-time
+- **🎨 Modern UI/UX** dengan CSS modular dan design yang clean
+- **⚡ Real-time Updates** dari backend Express.js
 
 ## 🛠️ Setup & Installation
 
@@ -21,21 +23,15 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 
 1. **Clone atau download project ini**
 
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Setup Backend**
+2. **Setup Backend**
    ```bash
    cd backend
    npm install
    ```
 
-4. **Konfigurasi Database**
+3. **Konfigurasi Database**
    - Pastikan MySQL server berjalan
-   - Database `toko` sudah tersedia
+   - Database `toko` sudah tersedia dengan struktur sesuai dokumentasi
    - Update konfigurasi di `backend/server.js` jika diperlukan:
      ```javascript
      const dbConfig = {
@@ -47,7 +43,7 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
      };
      ```
 
-5. **Jalankan server**
+4. **Jalankan server**
    ```bash
    cd backend
    npm start
@@ -59,9 +55,10 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
    npm run dev
    ```
 
-6. **Akses Dashboard**
+5. **Akses Dashboard**
    - Dashboard: http://localhost:3002
    - API: http://localhost:3002/api
+   - Login dengan credential yang tersedia di database
 
 
 ## 📡 API Endpoints
@@ -70,22 +67,44 @@ Server Express.js menyediakan endpoint berikut:
 
 | Endpoint | Deskripsi |
 |----------|-----------|
+| `POST /api/auth/login` | Autentikasi login dengan username/password |
 | `GET /api/stats` | Statistik umum (revenue, produk, order, stok menipis) |
-| `GET /api/sales-trend` | Trend penjualan 7 hari terakhir |
-| `GET /api/category-sales` | Penjualan per kategori |
 | `GET /api/revenue-profit` | Data omset & laba dengan filter tanggal |
-| `GET /api/monthly-comparison` | Perbandingan bulanan |
-| `GET /api/top-products` | Produk terlaris |
-| `GET /api/stock-analysis` | Analisis stok |
-| `GET /api/recent-transactions` | Transaksi terbaru |
-| `GET /api/top-selling-products` | Produk terlaris dengan detail |
 
-### Contoh penggunaan API Revenue-Profit:
+### Contoh penggunaan API:
+
+**Login:**
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "your_username",
+  "password": "your_password"
+}
+```
+
+**Revenue-Profit dengan filter tanggal:**
 ```
 GET /api/revenue-profit?start_date=2024-06-01&end_date=2024-06-30
 ```
-- **Font Awesome**: Icons
-- **Google Fonts**: Typography
+## 💻 Tech Stack
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Backend**: Node.js + Express.js  
+- **Database**: MySQL
+- **Charts**: Chart.js
+- **Authentication**: MD5 password hashing
+- **Icons**: Font Awesome
+- **Styling**: CSS Modular (base.css, login.css, dashboard-v2.css)
+
+## 🎨 Design Features
+
+- **Responsive Layout**: Desktop sidebar + main content, mobile stack layout
+- **Premium Revenue Card**: Dedicated row dengan styling yang prominent
+- **Side-by-side Layout**: Chart dan tabel bersebelahan di desktop
+- **Modern CSS**: Gradients, shadows, hover effects
+- **Clean Typography**: Professional font hierarchy
 
 ## Fitur Responsive
 
@@ -93,30 +112,27 @@ GET /api/revenue-profit?start_date=2024-06-01&end_date=2024-06-30
 - **Tablet**: Adaptasi layout untuk layar medium
 - **Mobile**: Sidebar yang dapat diciutkan, layout stack vertikal
 
-## Komponen Dashboard
+## 📊 Komponen Dashboard
 
-### Cards Statistik
-- Total Pendapatan dengan persentase perubahan
-- Jumlah Produk dengan trend
-- Pesanan Hari Ini
-- Alert Stok Menipis
+### Revenue Section
+- **Total Pendapatan**: Card premium dengan row terpisah untuk nominal besar
+- **Typography besar**: Font 3rem untuk readability nominal milyaran
+- **White theme**: Styling konsisten dengan design system
 
-### Grafik
-- **Sales Chart**: Menampilkan tren penjualan 7 hari terakhir
-- **Category Chart**: Distribusi penjualan per kategori produk
+### Stats Grid  
+- **Total Produk**: Jumlah produk dari database
+- **Pesanan Hari Ini**: Transaksi hari ini dari `penjualan_fix`
+- **Stok Menipis**: Alert produk dengan stok < minimal
 
-### Tabel
-- **Produk Terlaris**: Menampilkan produk dengan penjualan tertinggi
-- **Transaksi Terbaru**: Log transaksi real-time dengan status
+### Content Grid
+- **Chart Section**: Bar chart omset & laba dengan filter tanggal
+- **Table Section**: Data tabel omset/laba dengan scroll
+- **Responsive**: Side-by-side di desktop, stack di mobile
 
-### Navigasi
-- Dashboard
-- Produk
-- Inventori
-- Penjualan
-- Laporan
-- Supplier
-- Pengaturan
+### Login System
+- **Database Authentication**: Username/password dengan MD5 hash
+- **User Level Display**: Menampilkan level user (ADMIN, USER, etc.)
+- **Session Management**: LocalStorage untuk state management
 
 ## Customization
 
@@ -159,16 +175,16 @@ Semua teks dapat diubah langsung di file HTML atau dengan membuat file konfigura
 - **Loading States**: Animasi loading untuk better UX
 - **Error Handling**: Validasi form dan error messages
 
-## Future Enhancements
+## 🚀 Future Enhancements
 
-- [ ] Integrasi dengan database real
-- [ ] Export data ke PDF/Excel
-- [ ] Multi-user support dengan roles
-- [ ] Dark mode theme
-- [ ] Push notifications
-- [ ] PWA (Progressive Web App) support
-- [ ] Inventory forecasting
-- [ ] Barcode scanning integration
+- [ ] **Export functionality**: PDF/Excel export untuk laporan
+- [ ] **More chart types**: Pie chart kategori, line chart trends  
+- [ ] **Advanced filters**: Filter by category, product, payment method
+- [ ] **Dark mode**: Theme switcher untuk user preference
+- [ ] **Real-time notifications**: WebSocket untuk update real-time
+- [ ] **Mobile app**: PWA conversion untuk mobile experience
+- [ ] **Multi-branch support**: Support untuk multiple cabang/toko
+- [ ] **Advanced analytics**: Forecasting, trend analysis, insights
 
 ## Lisensi
 
@@ -178,13 +194,23 @@ Project ini dibuat untuk keperluan edukasi dan demonstrasi.
 
 Untuk pertanyaan atau saran, silakan buat issue di repository ini.
 
-## 🎯 Cara Menggunakan Chart Omset & Laba
+## 🎯 Cara Menggunakan
 
-1. **Akses Dashboard** di `http://localhost:3000`
-2. **Scroll ke bawah** untuk melihat section "Omset & Laba"
-3. **Pilih rentang tanggal** menggunakan date picker
-4. **Klik tombol "Terapkan"** untuk memfilter data
-5. **Chart akan update** menampilkan data sesuai rentang tanggal yang dipilih
+### Login
+1. **Akses** `http://localhost:3002`
+2. **Login** dengan kredensial yang tersedia di database
+3. **Dashboard** akan terbuka setelah autentikasi berhasil
+
+### Filter Data Omset & Laba
+1. **Pilih tanggal mulai** di date picker kiri
+2. **Pilih tanggal selesai** di date picker kanan  
+3. **Klik "Terapkan"** untuk memfilter data
+4. **Chart dan tabel** akan update dengan data sesuai rentang tanggal
+
+### Responsive Usage
+- **Desktop**: Chart dan tabel side-by-side dengan full features
+- **Tablet**: Layout tetap side-by-side dengan spacing disesuaikan
+- **Mobile**: Chart dan tabel stack vertikal untuk kemudahan akses
 
 ## 📁 Struktur File
 
@@ -211,37 +237,72 @@ wsb-report/
 ## 🔧 Troubleshooting
 
 ### Server tidak bisa connect ke database
-- Pastikan MySQL server berjalan
-- Cek konfigurasi database di `server.js`
-- Pastikan database `toko` exists
+- Pastikan MySQL server berjalan di port 3306
+- Cek konfigurasi database di `backend/server.js`
+- Pastikan database `toko` exists dengan struktur sesuai dokumentasi
 - Jika database kosong, server akan menggunakan data fallback
 
+### Login gagal
+- Pastikan user dengan password MD5 hash yang benar ada di tabel `user`
+- Cek endpoint `/api/auth/login` di browser network tab
+- Pastikan server backend berjalan di port 3002
+
 ### Dashboard tidak load data
-- Pastikan server Express.js berjalan di port 3000
-- Cek console browser untuk error message
-- Jika ada CORS error, pastikan server sudah enable CORS
+- Pastikan server Express.js berjalan di port 3002 (bukan 3000)
+- Cek console browser untuk error message  
+- Cek API calls di browser network tab
+- Jika ada CORS error, server sudah include CORS middleware
 
 ### Chart tidak muncul
-- Pastikan Chart.js library ter-load
+- Pastikan Chart.js library ter-load dari CDN
 - Cek console browser untuk JavaScript errors
-- Refresh halaman jika diperlukan
+- Refresh halaman dan cek network tab untuk failed requests
+- Pastikan canvas element dengan id `revenueProfitChart` ada
 
-## 🆚 Perbandingan PHP vs Express.js
+## 🗄️ Database Schema
 
-| Aspek | PHP | Express.js |
-|-------|-----|------------|
-| **Performance** | Good | Excellent |
-| **Real-time** | Limited | Native support |
-| **Scalability** | Good | Excellent |
-| **Modern Features** | Limited | Full ES6+ support |
-| **Development Speed** | Fast | Very Fast |
-| **Community** | Large | Very Large |
+Project ini menggunakan database MySQL dengan nama `toko` yang memiliki struktur lengkap untuk sistem POS/retail:
 
-## 📝 Notes
+### Tabel Utama:
+- **`user`**: Data pengguna dengan autentikasi MD5
+- **`penjualan_fix`**: Header transaksi penjualan
+- **`penjualan_det`**: Detail item per transaksi  
+- **`produk`**: Master data produk dengan stok
+- **`pecah_stok`**: Harga dan stok detail per satuan
+- **`kategori`**: Kategori produk
+- **`distributor`**: Data supplier
 
-- Backend Express.js menggantikan sepenuhnya PHP API
-- Semua endpoint memiliki fallback data jika database tidak tersedia
-- Chart menggunakan Chart.js dengan konfigurasi yang responsif
-- Date range picker mendukung validasi input
-- Semua data tidak dibatasi 5 row (menampilkan data lengkap)
+### Data yang Digunakan Dashboard:
+- **Total Pendapatan**: `SUM(grand_total)` dari `penjualan_fix`
+- **Omset & Laba**: Join `penjualan_fix` + `penjualan_det` untuk kalkulasi laba
+- **Total Produk**: `COUNT(*)` dari `produk`  
+- **Stok Menipis**: Produk dengan `stok_toko < stok_minimal`
+
+*Referensi database structure tersedia di folder `db_structure_referrence/` (excluded dari git)*
+
+## 📝 Notes & Architecture
+
+### Backend Architecture
+- **Modular structure**: File backend terpisah di folder `backend/`
+- **Clean API endpoints**: RESTful design dengan proper error handling
+- **Database fallback**: Jika database tidak tersedia, menggunakan sample data
+- **MD5 Authentication**: Password hashing sesuai sistem existing
+
+### Frontend Architecture  
+- **Vanilla JavaScript**: No framework dependency, lightweight
+- **Modular CSS**: Terpisah antara base, login, dan dashboard styles
+- **Responsive first**: Mobile-friendly design dari awal
+- **API-driven**: Semua data dari backend API calls
+
+### Security Features
+- **MD5 password hashing**: Sesuai dengan sistem database existing
+- **Session management**: LocalStorage untuk state persistence  
+- **CORS enabled**: Cross-origin requests handled properly
+- **Input validation**: Client-side dan server-side validation
+
+### Performance Optimizations
+- **Chart.js optimized**: maintainAspectRatio false untuk responsive
+- **Efficient queries**: Database query optimization untuk performa
+- **CDN resources**: Font Awesome dan Chart.js dari CDN
+- **Minimal dependencies**: Lightweight stack untuk fast loading
 
