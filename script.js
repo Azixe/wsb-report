@@ -1,7 +1,7 @@
 // Global variables
 let sidebarOpen = false;
 let chartInstances = {};
-const API_BASE = 'http://localhost:3000/api'; // Base URL for Express.js API calls
+const API_BASE = 'http://localhost:3001/api'; // Base URL for Express.js API calls
 
 // API Helper Functions
 async function fetchAPI(endpoint, params = {}) {
@@ -308,8 +308,8 @@ function updateUserInfo() {
     
     // Update user level if there's an element for it
     const userLevelElement = document.querySelector('.user-level');
-    if (userLevelElement && userLevel) {
-        userLevelElement.textContent = userLevel;
+    if (userLevelElement) {
+        userLevelElement.textContent = userLevel || 'User';
     }
 }
 
