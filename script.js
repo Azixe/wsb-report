@@ -189,7 +189,7 @@ function initSidebar() {
             }
             
             // You can add navigation logic here
-            showNotification(`Navigasi ke ${item.querySelector('span').textContent}`, 'info');
+            // Navigation logic can be added here in the future
         });
     });
     
@@ -696,10 +696,8 @@ function initSearch() {
             const query = e.target.value.toLowerCase();
             
             if (query.length > 2) {
-                // Simulate search results
-                setTimeout(() => {
-                    showNotification(`Mencari: "${query}"`, 'info');
-                }, 300);
+                // Search logic can be implemented here in the future
+                console.log('Search query:', query);
             }
         });
     }
