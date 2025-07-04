@@ -491,7 +491,7 @@ function updateStatsCards(stats) {
     if (revenueCard) {
         const revenueElement = revenueCard.querySelector('h3');
         if (revenueElement) {
-            revenueElement.textContent = formatCurrency(stats?.total_revenue || 125450000);
+            revenueElement.textContent = formatCurrency(stats?.total_revenue || 0);
         }
     }
     

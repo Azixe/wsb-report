@@ -150,18 +150,12 @@ app.get('/api/revenue-profit', async (req, res) => {
         let notaData = [];
         
         if (results.length === 0) {
-            console.log('🔄 No data found, generating fallback data');
-            // Generate fallback data if no real data exists
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const current = new Date(start);
-            
-            while (current <= end) {
-                labels.push(current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                omsetData.push(Math.floor(Math.random() * 15000000) + 10000000); // 10M - 25M
-                labaData.push(Math.floor(Math.random() * 12000000) + 8000000);   // 8M - 20M
-                current.setDate(current.getDate() + 1);
-            }
+            console.log('⚠️  No data found for specified date range');
+            // Return empty data when no real data exists
+            labels = [];
+            omsetData = [];
+            labaData = [];
+            notaData = [];
         } else {
             console.log(`✅ Found ${results.length} records`);
             results.forEach(row => {
@@ -187,16 +181,15 @@ app.get('/api/revenue-profit', async (req, res) => {
         });
     } catch (error) {
         console.error('Revenue profit API error:', error);
-        // Return fallback data on error
-        const labels = ['Jun 26', 'Jun 27', 'Jun 28', 'Jun 29', 'Jun 30'];
-        const omsetData = [15000000, 18000000, 19000000, 22000000, 24000000];
-        const labaData = [10000000, 16000000, 15000000, 18000000, 20000000];
-        
-        res.json({
-            labels,
-            omset: omsetData,
-            laba: labaData,
-            error: 'Using fallback data: ' + error.message
+        // Return empty data on error
+        res.status(500).json({
+            success: false,
+            error: 'Database error: ' + error.message,
+            labels: [],
+            omset: [],
+            laba: [],
+            jumlah_nota: [],
+            total_revenue: 0
         });
     }
 });
