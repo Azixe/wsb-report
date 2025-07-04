@@ -808,7 +808,7 @@ function updateCategorySalesTable(products, categoryId) {
     products.forEach(product => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${product.kode_produk || product.kode || '-'}</td>
+            <td>${product.kd_produk || product.kode_produk || product.kode || '-'}</td>
             <td>${product.nama_produk || product.nama || '-'}</td>
             <td>${new Intl.NumberFormat('id-ID').format(product.total_qty || product.qty || 0)}</td>
             <td>${formatCurrency(product.total_omset || product.total || 0)}</td>
