@@ -39,12 +39,14 @@
 .sidebar-header .logo-img {
   height: 40px;
   filter: brightness(0) invert(1);
+  padding-bottom: 5px;
 }
 
 .sidebar-header .logo span {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.025em;
+  padding-top: 10px;
 }
 
 .sidebar-menu {
