@@ -128,8 +128,8 @@
             <!-- Chart and Table Layout -->
             <div class="content-grid">
                 <!-- Charts Section -->
-                <div class="chart-section">
-                    <div class="chart-container">
+                <div class="charts-row">
+                    <div class="chart-container" style="height: 700px !important; min-height: 700px !important;">
                         <div class="chart-header">
                             <h3>Omset & Laba</h3>
                             <div class="chart-controls">
@@ -139,14 +139,33 @@
                                 <button id="applyDateRange" class="apply-btn">Terapkan</button>
                             </div>
                         </div>
-                        <div class="chart-wrapper">
-                            <canvas id="revenueProfitChart"></canvas>
+                        <div class="chart-wrapper" style="height: 550px !important; min-height: 550px !important;">
+                            <canvas id="revenueProfitChart" style="height: 500px !important; max-height: 500px !important; min-height: 500px !important;"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Sales Chart -->
+                    <div class="chart-container" style="height: 700px !important; min-height: 700px !important;">
+                        <div class="chart-header">
+                            <h3>Laporan Penjualan by Kategori</h3>
+                            <div class="chart-controls">
+                                <select id="categorySelect" class="category-select">
+                                    <option value="">Pilih Kategori...</option>
+                                </select>
+                                <input type="date" id="categoryStartDate" class="date-input">
+                                <span>-</span>
+                                <input type="date" id="categoryEndDate" class="date-input">
+                                <button id="applyCategoryFilter" class="apply-btn">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 550px !important; min-height: 550px !important;">
+                            <canvas id="categorySalesChart" style="height: 500px !important; max-height: 500px !important; min-height: 500px !important;"></canvas>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Tables Section -->
-                <div class="table-section">
+                <div class="tables-row">
                     <div class="table-container">
                         <div class="table-header">
                             <h2>Data Omset dan Laba</h2>
@@ -162,6 +181,34 @@
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Sales Table -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>Detail Penjualan by Kategori</h2>
+                            <div class="table-info">
+                                <span id="categoryTableTitle">Pilih kategori untuk melihat detail produk</span>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="CategorySalesTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kode</th>
+                                        <th>Nama Produk</th>
+                                        <th>Qty</th>
+                                        <th>Total</th>
+                                        <th>Laba</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Pilih kategori untuk melihat data</td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>

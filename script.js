@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
         initLoginPage();
     } else if (document.querySelector('.dashboard-page')) {
         initDashboard();
+        initProductsSection();
+        initNavigation();
     }
 });
 
@@ -150,7 +152,9 @@ function initDashboard() {
     initSidebar();
     initCharts();
     initDateRange();
+    initCategoryControls();
     loadDashboardData();
+    loadCategories();
     updateUserInfo();
     startRealTimeUpdates();
     
@@ -212,6 +216,21 @@ function initCharts() {
         }
     });
     chartInstances = {};
+    
+    // Force canvas height before creating charts
+    const revenueProfitCanvas = document.getElementById('revenueProfitChart');
+    if (revenueProfitCanvas) {
+        revenueProfitCanvas.style.height = '480px';
+        revenueProfitCanvas.style.maxHeight = '480px';
+        revenueProfitCanvas.style.minHeight = '480px';
+    }
+    
+    const categorySalesCanvas = document.getElementById('categorySalesChart');
+    if (categorySalesCanvas) {
+        categorySalesCanvas.style.height = '480px';
+        categorySalesCanvas.style.maxHeight = '480px';
+        categorySalesCanvas.style.minHeight = '480px';
+    }
     
     // Revenue & Profit Chart
     const revenueProfitCtx = document.getElementById('revenueProfitChart');
@@ -292,6 +311,52 @@ function initCharts() {
         // Load initial data for revenue profit chart
         loadRevenueProfitData();
     }
+    
+    // Category Sales Chart
+    const categorySalesCtx = document.getElementById('categorySalesChart');
+    if (categorySalesCtx) {
+        chartInstances.categorySalesChart = new Chart(categorySalesCtx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+                        '#9b59b6', '#1abc9c', '#34495e', '#e67e22'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = 'Qty: ' + new Intl.NumberFormat('id-ID').format(context.raw);
+                                return label + ' - ' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 function updateUserInfo() {
@@ -354,8 +419,36 @@ function animateElements() {
     });
 }
 
-function formatCurrency(value) {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+// Utility function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Currency formatting function
+function formatCurrency(amount) {
+    if (amount === null || amount === undefined) return 'Rp 0';
+    
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+// Number formatting function
+function formatNumber(number) {
+    if (number === null || number === undefined) return '0';
+    
+    return new Intl.NumberFormat('id-ID').format(number);
 }
 
 // Functions to load and handle dashboard data
@@ -580,6 +673,563 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
         console.error('Gagal mengambil data omset & laba:', error);
         const tableBody = document.querySelector('#RevenueProfitTable tbody');
         tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Gagal memuat data. Silahkan coba lagi nanti.</td></tr>';
+    }
+}
+
+function initCategoryControls() {
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryStartDate = document.getElementById('categoryStartDate');
+    const categoryEndDate = document.getElementById('categoryEndDate');
+    const applyCategoryBtn = document.getElementById('applyCategoryFilter');
+    
+    if (categoryStartDate && categoryEndDate && applyCategoryBtn) {
+        // Set default date range (last 7 days)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 7);
+        
+        categoryStartDate.value = startDate.toISOString().split('T')[0];
+        categoryEndDate.value = endDate.toISOString().split('T')[0];
+        
+        // Add event listener for apply button
+        applyCategoryBtn.addEventListener('click', function() {
+            const selectedCategory = categorySelect.value;
+            const start = categoryStartDate.value;
+            const end = categoryEndDate.value;
+            
+            if (!selectedCategory) {
+                showNotification('Pilih kategori terlebih dahulu', 'warning');
+                return;
+            }
+            
+            if (!start || !end) {
+                showNotification('Pilih tanggal mulai dan selesai', 'warning');
+                return;
+            }
+            
+            if (new Date(start) > new Date(end)) {
+                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
+                return;
+            }
+            
+            loadCategorySalesData(selectedCategory, start, end);
+            showNotification(`Memuat data kategori dari ${start} sampai ${end}`, 'info');
+        });
+        
+        // Add enter key support
+        [categoryStartDate, categoryEndDate].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyCategoryBtn.click();
+                }
+            });
+        });
+    }
+}
+
+async function loadCategories() {
+    try {
+        const data = await fetchAPI('categories');
+        const categorySelect = document.getElementById('categorySelect');
+        
+        if (categorySelect && data && Array.isArray(data)) {
+            // Clear existing options except the first one
+            categorySelect.innerHTML = '<option value="">Pilih Kategori...</option>';
+            
+            data.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id_kategori || category.id;
+                option.textContent = category.nama_kategori || category.nama;
+                categorySelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showNotification('Gagal memuat data kategori', 'error');
+    }
+}
+
+async function loadCategorySalesData(categoryId, startDate = null, endDate = null) {
+    try {
+        const params = { category_id: categoryId };
+        
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        }
+        
+        const data = await fetchAPI('category-sales', params);
+        
+        if (data) {
+            updateCategorySalesChart(data.chart_data || []);
+            updateCategorySalesTable(data.products || [], categoryId);
+        }
+    } catch (error) {
+        console.error('Error loading category sales data:', error);
+        showNotification('Gagal memuat data penjualan kategori', 'error');
+    }
+}
+
+function updateCategorySalesChart(chartData) {
+    const chart = chartInstances.categorySalesChart;
+    if (!chart || !chartData.length) return;
+    
+    const labels = chartData.map(item => item.nama_produk || item.name);
+    const data = chartData.map(item => parseFloat(item.total_qty || item.qty || 0));
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update('active');
+    
+    console.log('Category sales chart updated with data:', { labels, data });
+}
+
+function updateCategorySalesTable(products, categoryId) {
+    const tableBody = document.querySelector('#CategorySalesTable tbody');
+    const tableTitle = document.getElementById('categoryTableTitle');
+    
+    if (!tableBody) return;
+    
+    // Update table title
+    const categorySelect = document.getElementById('categorySelect');
+    const selectedCategoryName = categorySelect.options[categorySelect.selectedIndex].text;
+    if (tableTitle) {
+        tableTitle.textContent = `Detail Penjualan Kategori: ${selectedCategoryName}`;
+    }
+    
+    // Clear existing rows
+    tableBody.innerHTML = '';
+    
+    if (!products || products.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data untuk kategori ini</td></tr>';
+        return;
+    }
+    
+    products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.kode_produk || product.kode || '-'}</td>
+            <td>${product.nama_produk || product.nama || '-'}</td>
+            <td>${new Intl.NumberFormat('id-ID').format(product.total_qty || product.qty || 0)}</td>
+            <td>${formatCurrency(product.total_omset || product.total || 0)}</td>
+            <td>${formatCurrency(product.total_laba || product.laba || 0)}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Navigation Functions
+function initNavigation() {
+    const menuItems = document.querySelectorAll('.menu-item a');
+    
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = this.getAttribute('href').substring(1); // Remove #
+            
+            // Remove active class from all menu items
+            document.querySelectorAll('.menu-item').forEach(menu => {
+                menu.classList.remove('active');
+            });
+            
+            // Add active class to clicked menu item
+            this.parentElement.classList.add('active');
+            
+            // Show/hide sections
+            showSection(target);
+        });
+    });
+}
+
+function showSection(sectionName) {
+    // Hide all sections
+    const sections = ['dashboard-content', 'products-section'];
+    sections.forEach(section => {
+        const element = document.getElementById(section) || document.querySelector(`.${section}`);
+        if (element) {
+            element.style.display = 'none';
+        }
+    });
+    
+    // Show target section
+    switch(sectionName) {
+        case 'overview':
+            const dashboardContent = document.querySelector('.dashboard-content');
+            if (dashboardContent) {
+                dashboardContent.style.display = 'block';
+            }
+            break;
+        case 'products':
+            const productsSection = document.getElementById('products-section');
+            if (productsSection) {
+                productsSection.style.display = 'block';
+                loadProducts(); // Load products when section is shown
+            }
+            break;
+        case 'export':
+            // TODO: Implement export functionality
+            showNotification('Fitur export sedang dalam pengembangan', 'info');
+            break;
+        default:
+            const defaultSection = document.querySelector('.dashboard-content');
+            if (defaultSection) {
+                defaultSection.style.display = 'block';
+            }
+    }
+}
+
+// Products Management Functions
+let currentProductsPage = 1;
+let currentProductsFilters = {
+    search: '',
+    category: '',
+    lowStock: false
+};
+
+function initProductsSection() {
+    // Search input
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(function() {
+            currentProductsFilters.search = this.value;
+            currentProductsPage = 1;
+            loadProducts();
+        }, 500));
+    }
+    
+    // Category filter
+    const categoryFilter = document.getElementById('productCategoryFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            currentProductsFilters.category = this.value;
+            currentProductsPage = 1;
+            loadProducts();
+        });
+        
+        // Load categories for filter
+        loadProductCategories();
+    }
+    
+    // Low stock filter
+    const lowStockFilter = document.getElementById('lowStockFilter');
+    if (lowStockFilter) {
+        lowStockFilter.addEventListener('click', function() {
+            currentProductsFilters.lowStock = !currentProductsFilters.lowStock;
+            this.classList.toggle('active');
+            currentProductsPage = 1;
+            loadProducts();
+        });
+    }
+    
+    // Refresh button
+    const refreshBtn = document.getElementById('refreshProducts');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            loadProducts();
+        });
+    }
+    
+    // Pagination
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', function() {
+            if (currentProductsPage > 1) {
+                currentProductsPage--;
+                loadProducts();
+            }
+        });
+    }
+    
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', function() {
+            currentProductsPage++;
+            loadProducts();
+        });
+    }
+    
+    // Modal close
+    const modal = document.getElementById('productModal');
+    const closeModal = document.getElementById('closeModal');
+    
+    if (closeModal) {
+        closeModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+    
+    if (modal) {
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+}
+
+async function loadProductCategories() {
+    try {
+        const categoriesData = await fetchAPI('categories');
+        if (categoriesData) {
+            const categoryFilter = document.getElementById('productCategoryFilter');
+            if (categoryFilter) {
+                // Clear existing options except first one
+                categoryFilter.innerHTML = '<option value="">Semua Kategori</option>';
+                
+                categoriesData.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id_kategori || category.nama_kategori;
+                    option.textContent = category.nama_kategori;
+                    categoryFilter.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+async function loadProducts() {
+    try {
+        const productsTable = document.getElementById('ProductsTable');
+        const tbody = productsTable.querySelector('tbody');
+        
+        // Show loading
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Memuat data produk...
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        const params = {
+            page: currentProductsPage,
+            limit: 20,
+            ...currentProductsFilters
+        };
+        
+        // Remove empty params
+        Object.keys(params).forEach(key => {
+            if (params[key] === '' || params[key] === false) {
+                delete params[key];
+            }
+        });
+        
+        const data = await fetchAPI('products', params);
+        
+        if (data && data.products) {
+            displayProducts(data.products);
+            updateProductsPagination(data.pagination);
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center">
+                        Tidak ada data produk yang ditemukan
+                    </td>
+                </tr>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading products:', error);
+        const tbody = document.querySelector('#ProductsTable tbody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center">
+                    Gagal memuat data produk: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function displayProducts(products) {
+    const tbody = document.querySelector('#ProductsTable tbody');
+    
+    if (products.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center">
+                    Tidak ada produk yang ditemukan
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = products.map(product => {
+        const stockStatusClass = product.stock_status || 'normal';
+        const stockStatusText = stockStatusClass === 'low' ? 'Menipis' : 
+                               stockStatusClass === 'out' ? 'Habis' : 'Normal';
+        
+        const margin = product.margin ? `${product.margin}%` : '-';
+        
+        return `
+            <tr>
+                <td><strong>${product.kd_produk}</strong></td>
+                <td>
+                    <div class="product-name">${product.nama_produk}</div>
+                    ${product.barcode ? `<small class="text-muted">Barcode: ${product.barcode}</small>` : ''}
+                </td>
+                <td>
+                    <span class="category-badge">${product.kategori || '-'}</span>
+                    ${product.sub_kategori ? `<br><small>${product.sub_kategori}</small>` : ''}
+                </td>
+                <td>
+                    <div class="stock-info">
+                        <strong>${product.total_stok || 0}</strong>
+                        ${product.stok_minimal > 0 ? `<small>/ Min: ${product.stok_minimal}</small>` : ''}
+                    </div>
+                </td>
+                <td>${product.satuan || '-'}</td>
+                <td>${formatCurrency(product.harga_beli || 0)}</td>
+                <td>${formatCurrency(product.harga_jual_umum || 0)}</td>
+                <td class="margin-cell ${product.margin && product.margin > 0 ? 'positive' : ''}">${margin}</td>
+                <td>
+                    <span class="stock-status ${stockStatusClass}">${stockStatusText}</span>
+                </td>
+                <td>
+                    <button class="action-btn view" onclick="showProductDetail('${product.kd_produk}')">
+                        <i class="fas fa-eye"></i>
+                        Detail
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateProductsPagination(pagination) {
+    if (!pagination) return;
+    
+    // Update pagination info
+    const paginationInfo = document.getElementById('paginationInfo');
+    if (paginationInfo) {
+        const startItem = ((pagination.current_page - 1) * pagination.items_per_page) + 1;
+        const endItem = Math.min(pagination.current_page * pagination.items_per_page, pagination.total_items);
+        paginationInfo.textContent = `Menampilkan ${startItem}-${endItem} dari ${pagination.total_items} produk`;
+    }
+    
+    // Update pagination buttons
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    
+    if (prevBtn) {
+        prevBtn.disabled = !pagination.has_prev;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = !pagination.has_next;
+    }
+    
+    // Update page numbers
+    const pageNumbers = document.getElementById('pageNumbers');
+    if (pageNumbers) {
+        pageNumbers.innerHTML = generatePageNumbers(pagination);
+    }
+}
+
+function generatePageNumbers(pagination) {
+    const current = pagination.current_page;
+    const total = pagination.total_pages;
+    const maxVisible = 5;
+    
+    let start = Math.max(1, current - Math.floor(maxVisible / 2));
+    let end = Math.min(total, start + maxVisible - 1);
+    
+    if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    let html = '';
+    
+    // First page
+    if (start > 1) {
+        html += `<span class="page-number" onclick="goToPage(1)">1</span>`;
+        if (start > 2) {
+            html += `<span class="page-ellipsis">...</span>`;
+        }
+    }
+    
+    // Page numbers
+    for (let i = start; i <= end; i++) {
+        html += `<span class="page-number ${i === current ? 'active' : ''}" onclick="goToPage(${i})">${i}</span>`;
+    }
+    
+    // Last page
+    if (end < total) {
+        if (end < total - 1) {
+            html += `<span class="page-ellipsis">...</span>`;
+        }
+        html += `<span class="page-number" onclick="goToPage(${total})">${total}</span>`;
+    }
+    
+    return html;
+}
+
+function goToPage(page) {
+    currentProductsPage = page;
+    loadProducts();
+}
+
+async function showProductDetail(productId) {
+    const modal = document.getElementById('productModal');
+    const loadingDiv = modal.querySelector('.product-detail-loading');
+    const contentDiv = modal.querySelector('.product-detail-content');
+    
+    // Show modal and loading state
+    modal.style.display = 'block';
+    loadingDiv.style.display = 'block';
+    contentDiv.style.display = 'none';
+    
+    try {
+        const productData = await fetchAPI(`products/${productId}`);
+        
+        if (productData) {
+            // Fill modal with product data
+            document.getElementById('modalProductCode').textContent = productData.kd_produk || '-';
+            document.getElementById('modalBarcode').textContent = productData.barcode || '-';
+            document.getElementById('modalProductName').textContent = productData.nama_produk || '-';
+            document.getElementById('modalCategory').textContent = productData.kategori || '-';
+            document.getElementById('modalSubCategory').textContent = productData.sub_kategori || '-';
+            document.getElementById('modalUnit').textContent = productData.satuan || '-';
+            
+            document.getElementById('modalStockToko').textContent = productData.stok_toko || 0;
+            document.getElementById('modalStockGudang').textContent = productData.stok_gudang || 0;
+            document.getElementById('modalTotalStock').textContent = productData.total_stok || 0;
+            document.getElementById('modalMinStock').textContent = productData.stok_minimal || 0;
+            
+            document.getElementById('modalBuyPrice').textContent = formatCurrency(productData.harga_beli || 0);
+            document.getElementById('modalSellPrice').textContent = formatCurrency(productData.harga_jual_umum || 0);
+            document.getElementById('modalMemberPrice').textContent = formatCurrency(productData.harga_jual_member || 0);
+            document.getElementById('modalWholesalePrice').textContent = formatCurrency(productData.harga_jual_grosir || 0);
+            document.getElementById('modalMargin').textContent = productData.margin ? `${productData.margin}%` : '-';
+            
+            if (productData.sales_analytics) {
+                document.getElementById('modalTotalSold').textContent = productData.sales_analytics.total_sold_30_days || 0;
+                document.getElementById('modalAvgDaily').textContent = productData.sales_analytics.avg_daily_sales || 0;
+                document.getElementById('modalDaysOfStock').textContent = 
+                    productData.sales_analytics.days_of_stock ? `${productData.sales_analytics.days_of_stock} hari` : '-';
+            }
+            
+            // Show content and hide loading
+            loadingDiv.style.display = 'none';
+            contentDiv.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error loading product detail:', error);
+        loadingDiv.innerHTML = `
+            <div style="color: red;">
+                <i class="fas fa-exclamation-triangle"></i>
+                Gagal memuat detail produk: ${error.message}
+            </div>
+        `;
     }
 }
 
