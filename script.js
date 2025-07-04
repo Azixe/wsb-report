@@ -866,10 +866,6 @@ function showSection(sectionName) {
                 loadProducts(); // Load products when section is shown
             }
             break;
-        case 'export':
-            // TODO: Implement export functionality
-            showNotification('Fitur export sedang dalam pengembangan', 'info');
-            break;
         default:
             const defaultSection = document.querySelector('.dashboard-content');
             if (defaultSection) {
