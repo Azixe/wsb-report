@@ -148,6 +148,32 @@
                     </div>
                 </div>
                 
+                <!-- Overview Section -->
+                <div class="overview-section">
+                    <div class="overview-container">
+                        <div class="overview-header">
+                            <h2>Overview Penjualan by Kategori</h2>
+                            <div class="overview-controls">
+                                <input type="date" id="overviewStartDate" class="date-input">
+                                <span>-</span>
+                                <input type="date" id="overviewEndDate" class="date-input">
+                                <button id="applyOverviewDateRange" class="apply-btn">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="overview-content">
+                            <div class="overview-chart">
+                                <canvas id="overviewCategoryChart"></canvas>
+                            </div>
+                            <div class="overview-legend" id="overviewLegend">
+                                <p class="legend-item" id="totalCategories"></p>
+                                <p class="legend-item" id="totalCategorySales"></p>
+                                <p class="legend-item" id="topCategory"></p>
+                                <!-- Legend items will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Tables Section -->
                 <div class="tables-row">
                     <div class="table-container">
@@ -201,6 +227,6 @@
         </div>
     </main>
     
-    <script src="script.js"></script>
+    <script src="script-clean.js"></script>
 </body>
 </html>
