@@ -723,7 +723,7 @@ function updateOverviewCategoryChart(categories) {
                 Tidak ada data kategori untuk rentang tanggal ini.
             </div>
         `;
-        
+
         return;
     }
     
@@ -770,7 +770,7 @@ function updateOverviewCategoryLegend(summary) {
         const topCat = summary.top_category;
         topCategoryElement.textContent = `Top Category: ${topCat.name} (${topCat.percentage}%)`;
     } else if (topCategoryElement) {
-        topCategoryElement.textContent = '-';
+        topCategoryElement.textContent = 'Top Category: -';
     }
     
     console.log('Overview category legend updated:', summary);
