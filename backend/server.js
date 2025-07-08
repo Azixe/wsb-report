@@ -408,7 +408,13 @@ app.get('/api/category-sales-summary', async (req, res) => {
             percentage: totalOmset > 0 ? ((parseFloat(cat.total_omset) / totalOmset) * 100).toFixed(1) : 0
         }));
         
-        // Cari kategori dengan penjualan tertinggi
+        // Cari top 5 kategori dengan penjualan tertinggi
+        const topCategories = chartData.slice(0, 5).map(cat => ({
+            name: cat.kategori,
+            total_omset: cat.total_omset,
+            percentage: cat.percentage
+        }));
+        
         const topCategory = chartData.length > 0 ? chartData[0] : null;
         
         console.log(`Found ${categoryResults.length} categories with total sales: Rp ${totalOmset.toLocaleString('id-ID')}`);
@@ -420,6 +426,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
                 total_omset: totalOmset,
                 total_qty: totalQty,
                 total_laba: totalLaba,
+                top_categories: topCategories, // Top 5 categories
                 top_category: topCategory ? {
                     name: topCategory.kategori,
                     omset: topCategory.total_omset,
@@ -448,6 +455,13 @@ app.get('/api/category-sales-summary', async (req, res) => {
         const totalQty = fallbackData.reduce((sum, cat) => sum + cat.total_qty, 0);
         const totalLaba = fallbackData.reduce((sum, cat) => sum + cat.total_laba, 0);
         
+        // Create top 5 from fallback data
+        const topCategories = fallbackData.slice(0, 5).map(cat => ({
+            name: cat.kategori,
+            total_omset: cat.total_omset,
+            percentage: cat.percentage
+        }));
+        
         res.json({
             categories: fallbackData,
             summary: {
@@ -455,6 +469,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
                 total_omset: totalOmset,
                 total_qty: totalQty,
                 total_laba: totalLaba,
+                top_categories: topCategories, // Top 5 categories for fallback
                 top_category: {
                     name: fallbackData[0].kategori,
                     omset: fallbackData[0].total_omset,

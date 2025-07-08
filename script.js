@@ -972,11 +972,25 @@ function updateOverviewCategoryLegend(summary) {
         totalCategorySalesElement.textContent = `Total Categories Sales: ` + `${summary.total_omset}`;
     }
     
-    if (topCategoryElement && summary.top_category) {
+    // Display top 5 categories instead of just top 1
+    if (topCategoryElement && summary.top_categories && Array.isArray(summary.top_categories)) {
+        const topCategories = summary.top_categories.slice(0, 5); // Get top 5
+        let topCategoryText = 'Top 5 Categories:<br>';
+        
+        topCategories.forEach((cat, index) => {
+            const rank = index + 1;
+            const percentage = cat.percentage || '0';
+            const omset = formatCurrency(cat.total_omset || 0);
+            topCategoryText += `${rank}. ${cat.name} - ${omset} (${percentage}%)<br>`;
+        });
+        
+        topCategoryElement.innerHTML = topCategoryText;
+    } else if (topCategoryElement && summary.top_category) {
+        // Fallback to single top category if top_categories not available
         const topCat = summary.top_category;
         topCategoryElement.textContent = `Top Category: ${topCat.name} (${topCat.percentage}%)`;
     } else if (topCategoryElement) {
-        topCategoryElement.textContent = 'Top Category: -';
+        topCategoryElement.textContent = 'Top Categories: -';
     }
     
     console.log('Overview category legend updated:', summary);
