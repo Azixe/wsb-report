@@ -194,61 +194,7 @@ app.get('/api/revenue-profit', async (req, res) => {
     }
 });
 
-// Login endpoint
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        
-        if (!username || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'Username dan password harus diisi'
-            });
-        }
-        
-        // Hash password dengan MD5
-        const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
-        
-        // Query untuk mencari user
-        const query = 'SELECT username, password, level, nama FROM user WHERE username = ?';
-        const result = await executeQuery(query, [username]);
-        
-        if (result.length === 0) {
-            return res.status(401).json({
-                success: false,
-                message: 'Username tidak ditemukan'
-            });
-        }
-        
-        const user = result[0];
-        
-        // Verifikasi password
-        if (user.password !== hashedPassword) {
-            return res.status(401).json({
-                success: false,
-                message: 'Password salah'
-            });
-        }
-        
-        // Login berhasil
-        res.json({
-            success: true,
-            message: 'Login berhasil',
-            user: {
-                username: user.username,
-                level: user.level,
-                nama: user.nama
-            }
-        });
-        
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Terjadi kesalahan server'
-        });
-    }
-});
+// Authentication removed - direct access to dashboard
 
 // Categories endpoint
 app.get('/api/categories', async (req, res) => {

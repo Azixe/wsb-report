@@ -38,115 +38,27 @@ async function fetchAPI(endpoint, params = {}) {
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on login page or dashboard
-    if (document.querySelector('.login-page')) {
-        initLoginPage();
-    } else if (document.querySelector('.dashboard-page')) {
+    // Always initialize dashboard (no login required)
+    if (document.querySelector('.dashboard-page')) {
         initDashboard();
         initProductsSection();
         initNavigation();
     }
+    
+    // Initialize search functionality (if needed in future)
+    initSearch();
+    
+    // Load initial revenue profit table data
+    loadRevenueProfitDataTabels();
 });
-
-// Login Page Functions
-function initLoginPage() {
-    const loginForm = document.getElementById('loginForm');
-    
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    // Add animation to login card
-    const loginCard = document.querySelector('.login-card');
-    if (loginCard) {
-        loginCard.classList.add('fade-in');
-    }
-}
-
-async function handleLogin(e) {
-    e.preventDefault();
-    
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const loginBtn = document.querySelector('.login-btn');
-    
-    if (!username || !password) {
-        showNotification('Username dan password harus diisi!', 'error');
-        return;
-    }
-    
-    // Show loading state
-    const originalText = loginBtn.innerHTML;
-    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-    loginBtn.disabled = true;
-    
-    try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            // Store login state
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', data.user.username);
-            localStorage.setItem('userLevel', data.user.level);
-            localStorage.setItem('userName', data.user.nama);
-            
-            showNotification('Login berhasil! Mengalihkan ke dashboard...', 'success');
-            
-            // Redirect to dashboard after short delay
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-        } else {
-            showNotification(data.message || 'Username atau password salah!', 'error');
-            
-            // Shake animation for error
-            const loginCard = document.querySelector('.login-card');
-            loginCard.style.animation = 'shake 0.5s ease-in-out';
-            setTimeout(() => {
-                loginCard.style.animation = '';
-            }, 500);
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('Gagal terhubung ke server. Pastikan server berjalan.', 'error');
-    } finally {
-        // Reset button
-        loginBtn.innerHTML = originalText;
-        loginBtn.disabled = false;
-    }
-}
-
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const passwordIcon = document.getElementById('passwordIcon');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        passwordIcon.className = 'fas fa-eye-slash';
-    } else {
-        passwordInput.type = 'password';
-        passwordIcon.className = 'fas fa-eye';
-    }
-}
 
 // Dashboard Functions
 function initDashboard() {
-    // Check if user is logged in
-    if (!localStorage.getItem('isLoggedIn')) {
-        window.location.href = 'index.html';
-        return;
-    }
+    // Auto set default user info (no login required)
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('username', 'admin');
+    localStorage.setItem('userLevel', 'Admin');
+    localStorage.setItem('userName', 'Administrator');
     
     // Initialize dashboard components
     initSidebar();
@@ -357,6 +269,72 @@ function initCharts() {
             }
         });
     }
+    
+    // Overview Category Chart - Pie Chart for Category Sales Summary
+    const overviewCategoryCtx = document.getElementById('overviewCategoryChart');
+    if (overviewCategoryCtx) {
+        chartInstances.overviewCategoryChart = new Chart(overviewCategoryCtx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+                        '#9b59b6', '#1abc9c', '#34495e', '#e67e22',
+                        '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 3,
+                    hoverBorderWidth: 4,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Legend ditampilkan manual di HTML
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = formatCurrency(context.raw);
+                                const percentage = context.dataset.data.length > 0 ? 
+                                    ((context.raw / context.dataset.data.reduce((a, b) => a + b, 0)) * 100).toFixed(1) : 0;
+                                return [
+                                    `${label}`,
+                                    `Omset: ${value}`,
+                                    `Persentase: ${percentage}%`
+                                ];
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    arc: {
+                        borderJoinStyle: 'round'
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1000
+                }
+            }
+        });
+        
+        // Load initial overview data
+        loadOverviewCategoryData();
+    }
 }
 
 function updateUserInfo() {
@@ -379,18 +357,9 @@ function updateUserInfo() {
 }
 
 function logout() {
-    // Clear login state
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('username');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userLevel');
-    
-    showNotification('Logout berhasil', 'success');
-    
-    // Redirect to login page
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1000);
+    // Logout disabled - no authentication required
+    showNotification('Sistem tidak memerlukan logout', 'info');
+    return false;
 }
 
 function startRealTimeUpdates() {
@@ -564,6 +533,150 @@ function initDateRange() {
             });
         });
     }
+    
+    // Initialize overview date range controls
+    initOverviewDateRange();
+}
+
+function initOverviewDateRange() {
+    const overviewStartDate = document.getElementById('overviewStartDate');
+    const overviewEndDate = document.getElementById('overviewEndDate');
+    const applyOverviewBtn = document.getElementById('applyOverviewDateRange');
+    
+    if (overviewStartDate && overviewEndDate && applyOverviewBtn) {
+        // Set default date range (last 30 days for overview)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30);
+        
+        overviewStartDate.value = startDate.toISOString().split('T')[0];
+        overviewEndDate.value = endDate.toISOString().split('T')[0];
+        
+        // Add event listener for apply button
+        applyOverviewBtn.addEventListener('click', function() {
+            const start = overviewStartDate.value;
+            const end = overviewEndDate.value;
+            
+            if (!start || !end) {
+                showNotification('Pilih tanggal mulai dan selesai untuk overview', 'warning');
+                return;
+            }
+            
+            if (new Date(start) > new Date(end)) {
+                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
+                return;
+            }
+            
+            loadOverviewCategoryData(start, end);
+            showNotification(`Memuat data overview dari ${start} sampai ${end}`, 'info');
+        });
+        
+        // Add enter key support
+        [overviewStartDate, overviewEndDate].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyOverviewBtn.click();
+                }
+            });
+        });
+    }
+}
+
+// Overview Category Data Functions - BACKEND TERHUBUNG
+async function loadOverviewCategoryData(startDate = null, endDate = null) {
+    try {
+        const params = {};
+        
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+            console.log('Loading overview category data for date range:', startDate, 'to', endDate);
+        } else {
+            console.log('Loading overview category data with default date range (last 30 days)');
+        }
+        
+        const data = await fetchAPI('category-sales-summary', params);
+        
+        if (data && data.categories && Array.isArray(data.categories)) {
+            console.log('Received overview category data:', data);
+            updateOverviewCategoryChart(data.categories);
+            updateOverviewCategoryLegend(data.summary);
+        } else {
+            console.log('No valid overview category data received, using fallback');
+            // Fallback data akan dihandle oleh API
+        }
+    } catch (error) {
+        console.error('Error loading overview category data:', error);
+        showNotification('Gagal memuat data overview kategori', 'error');
+    }
+}
+
+function updateOverviewCategoryChart(categories) {
+    const chart = chartInstances.overviewCategoryChart;
+    const chartContainer = document.getElementById('overviewCategoryChart');
+    if (!chart || !categories || categories.length === 0) {
+        console.log('No chart instance or no category data to update');
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
+        chart.update('active');
+
+        // Tambahkan pesan visual (opsional)
+        chartContainer.innerHTML = `
+            <div style="text-align:center; padding:2rem; color:#999;">
+                Tidak ada data kategori untuk rentang tanggal ini.
+            </div>
+        `;
+
+        return;
+    }
+    
+    // Extract data for chart
+    const labels = categories.map(cat => cat.kategori);
+    const data = categories.map(cat => parseFloat(cat.total_omset) || 0);
+    const colors = [
+        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+        '#9b59b6', '#1abc9c', '#34495e', '#e67e22',
+        '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'
+    ];
+    
+    // Update chart data
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[0].backgroundColor = colors.slice(0, labels.length);
+    
+    chart.update('active');
+    
+    console.log('Overview category chart updated with data:', { labels, data });
+}
+
+function updateOverviewCategoryLegend(summary) {
+    if (!summary) {
+        console.log('No summary data to update legend');
+        return;
+    }
+    
+    // Update legend stats
+    const totalCategoriesElement = document.getElementById('totalCategories');
+    const totalCategorySalesElement = document.getElementById('totalCategorySales');
+    const topCategoryElement = document.getElementById('topCategory');
+    
+    if (totalCategoriesElement) {
+        totalCategoriesElement.textContent = `Total Categories: ${summary.total_categories || 0}`;
+    }
+    
+    if (totalCategorySalesElement) {
+        summary.total_omset = formatCurrency(summary.total_omset || 0);
+        totalCategorySalesElement.textContent = `Total Categories Sales: ` + `${summary.total_omset}`;
+    }
+    
+    if (topCategoryElement && summary.top_category) {
+        const topCat = summary.top_category;
+        topCategoryElement.textContent = `Top Category: ${topCat.name} (${topCat.percentage}%)`;
+    } else if (topCategoryElement) {
+        topCategoryElement.textContent = 'Top Category: -';
+    }
+    
+    console.log('Overview category legend updated:', summary);
 }
 
 // Revenue & Profit Data Functions
@@ -725,6 +838,16 @@ function initCategoryControls() {
             });
         });
     }
+    
+    // Initialize empty category sales table
+    initCategorySalesTable();
+}
+
+function initCategorySalesTable() {
+    const tableBody = document.querySelector('#CategorySalesTable tbody');
+    if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Pilih kategori untuk melihat detail penjualan</td></tr>';
+    }
 }
 
 async function loadCategories() {
@@ -762,7 +885,7 @@ async function loadCategorySalesData(categoryId, startDate = null, endDate = nul
         
         if (data) {
             updateCategorySalesChart(data.chart_data || []);
-            updateCategorySalesTable(data.products || [], categoryId);
+            updateCategorySalesTable(data.products || []);
         }
     } catch (error) {
         console.error('Error loading category sales data:', error);
@@ -784,38 +907,39 @@ function updateCategorySalesChart(chartData) {
     console.log('Category sales chart updated with data:', { labels, data });
 }
 
-function updateCategorySalesTable(products, categoryId) {
+function updateCategorySalesTable(products) {
     const tableBody = document.querySelector('#CategorySalesTable tbody');
-    const tableTitle = document.getElementById('categoryTableTitle');
-    
-    if (!tableBody) return;
-    
-    // Update table title
-    const categorySelect = document.getElementById('categorySelect');
-    const selectedCategoryName = categorySelect.options[categorySelect.selectedIndex].text;
-    if (tableTitle) {
-        tableTitle.textContent = `Detail Penjualan Kategori: ${selectedCategoryName}`;
+    if (!tableBody) {
+        console.log('Category sales table not found');
+        return;
     }
     
-    // Clear existing rows
     tableBody.innerHTML = '';
     
     if (!products || products.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data untuk kategori ini</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data untuk kategori yang dipilih</td></tr>';
         return;
     }
     
     products.forEach(product => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${product.kd_produk || product.kode_produk || product.kode || '-'}</td>
-            <td>${product.nama_produk || product.nama || '-'}</td>
-            <td>${new Intl.NumberFormat('id-ID').format(product.total_qty || product.qty || 0)}</td>
-            <td>${formatCurrency(product.total_omset || product.total || 0)}</td>
-            <td>${formatCurrency(product.total_laba || product.laba || 0)}</td>
+        const kode = product.kd_produk || '-';
+        const nama = product.nama_produk || '-';
+        const qty = parseInt(product.total_qty) || 0;
+        const total = parseFloat(product.total_omset) || 0;
+        const laba = parseFloat(product.total_laba) || 0;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${kode}</td>
+            <td>${nama}</td>
+            <td class="text-center">${qty}</td>
+            <td>${formatCurrency(total)}</td>
+            <td>${formatCurrency(laba)}</td>
         `;
-        tableBody.appendChild(row);
+        tableBody.appendChild(tr);
     });
+    
+    console.log(`Category sales table updated with ${products.length} products`);
 }
 
 // Navigation Functions
@@ -825,7 +949,6 @@ function initNavigation() {
     menuItems.forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = this.getAttribute('href').substring(1); // Remove #
             
             // Remove active class from all menu items
             document.querySelectorAll('.menu-item').forEach(menu => {
@@ -834,399 +957,14 @@ function initNavigation() {
             
             // Add active class to clicked menu item
             this.parentElement.classList.add('active');
-            
-            // Show/hide sections
-            showSection(target);
         });
     });
 }
 
-function showSection(sectionName) {
-    // Hide all sections
-    const sections = ['dashboard-content', 'products-section'];
-    sections.forEach(section => {
-        const element = document.getElementById(section) || document.querySelector(`.${section}`);
-        if (element) {
-            element.style.display = 'none';
-        }
-    });
-    
-    // Show target section
-    switch(sectionName) {
-        case 'overview':
-            const dashboardContent = document.querySelector('.dashboard-content');
-            if (dashboardContent) {
-                dashboardContent.style.display = 'block';
-            }
-            break;
-        case 'products':
-            const productsSection = document.getElementById('products-section');
-            if (productsSection) {
-                productsSection.style.display = 'block';
-                loadProducts(); // Load products when section is shown
-            }
-            break;
-        default:
-            const defaultSection = document.querySelector('.dashboard-content');
-            if (defaultSection) {
-                defaultSection.style.display = 'block';
-            }
-    }
-}
-
-// Products Management Functions
-let currentProductsPage = 1;
-let currentProductsFilters = {
-    search: '',
-    category: '',
-    lowStock: false
-};
-
+// Products Management Functions (placeholder for future use)
 function initProductsSection() {
-    // Search input
-    const searchInput = document.getElementById('productSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(function() {
-            currentProductsFilters.search = this.value;
-            currentProductsPage = 1;
-            loadProducts();
-        }, 500));
-    }
-    
-    // Category filter
-    const categoryFilter = document.getElementById('productCategoryFilter');
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', function() {
-            currentProductsFilters.category = this.value;
-            currentProductsPage = 1;
-            loadProducts();
-        });
-        
-        // Load categories for filter
-        loadProductCategories();
-    }
-    
-    // Low stock filter
-    const lowStockFilter = document.getElementById('lowStockFilter');
-    if (lowStockFilter) {
-        lowStockFilter.addEventListener('click', function() {
-            currentProductsFilters.lowStock = !currentProductsFilters.lowStock;
-            this.classList.toggle('active');
-            currentProductsPage = 1;
-            loadProducts();
-        });
-    }
-    
-    // Refresh button
-    const refreshBtn = document.getElementById('refreshProducts');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            loadProducts();
-        });
-    }
-    
-    // Pagination
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    
-    if (prevPageBtn) {
-        prevPageBtn.addEventListener('click', function() {
-            if (currentProductsPage > 1) {
-                currentProductsPage--;
-                loadProducts();
-            }
-        });
-    }
-    
-    if (nextPageBtn) {
-        nextPageBtn.addEventListener('click', function() {
-            currentProductsPage++;
-            loadProducts();
-        });
-    }
-    
-    // Modal close
-    const modal = document.getElementById('productModal');
-    const closeModal = document.getElementById('closeModal');
-    
-    if (closeModal) {
-        closeModal.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-    }
-    
-    if (modal) {
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-    }
-}
-
-async function loadProductCategories() {
-    try {
-        const categoriesData = await fetchAPI('categories');
-        if (categoriesData) {
-            const categoryFilter = document.getElementById('productCategoryFilter');
-            if (categoryFilter) {
-                // Clear existing options except first one
-                categoryFilter.innerHTML = '<option value="">Semua Kategori</option>';
-                
-                categoriesData.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id_kategori || category.nama_kategori;
-                    option.textContent = category.nama_kategori;
-                    categoryFilter.appendChild(option);
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Error loading categories:', error);
-    }
-}
-
-async function loadProducts() {
-    try {
-        const productsTable = document.getElementById('ProductsTable');
-        const tbody = productsTable.querySelector('tbody');
-        
-        // Show loading
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" class="text-center">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        Memuat data produk...
-                    </div>
-                </td>
-            </tr>
-        `;
-        
-        const params = {
-            page: currentProductsPage,
-            limit: 20,
-            ...currentProductsFilters
-        };
-        
-        // Remove empty params
-        Object.keys(params).forEach(key => {
-            if (params[key] === '' || params[key] === false) {
-                delete params[key];
-            }
-        });
-        
-        const data = await fetchAPI('products', params);
-        
-        if (data && data.products) {
-            displayProducts(data.products);
-            updateProductsPagination(data.pagination);
-        } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="10" class="text-center">
-                        Tidak ada data produk yang ditemukan
-                    </td>
-                </tr>
-            `;
-        }
-        
-    } catch (error) {
-        console.error('Error loading products:', error);
-        const tbody = document.querySelector('#ProductsTable tbody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" class="text-center">
-                    Gagal memuat data produk: ${error.message}
-                </td>
-            </tr>
-        `;
-    }
-}
-
-function displayProducts(products) {
-    const tbody = document.querySelector('#ProductsTable tbody');
-    
-    if (products.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" class="text-center">
-                    Tidak ada produk yang ditemukan
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tbody.innerHTML = products.map(product => {
-        const stockStatusClass = product.stock_status || 'normal';
-        const stockStatusText = stockStatusClass === 'low' ? 'Menipis' : 
-                               stockStatusClass === 'out' ? 'Habis' : 'Normal';
-        
-        const margin = product.margin ? `${product.margin}%` : '-';
-        
-        return `
-            <tr>
-                <td><strong>${product.kd_produk}</strong></td>
-                <td>
-                    <div class="product-name">${product.nama_produk}</div>
-                    ${product.barcode ? `<small class="text-muted">Barcode: ${product.barcode}</small>` : ''}
-                </td>
-                <td>
-                    <span class="category-badge">${product.kategori || '-'}</span>
-                    ${product.sub_kategori ? `<br><small>${product.sub_kategori}</small>` : ''}
-                </td>
-                <td>
-                    <div class="stock-info">
-                        <strong>${product.total_stok || 0}</strong>
-                        ${product.stok_minimal > 0 ? `<small>/ Min: ${product.stok_minimal}</small>` : ''}
-                    </div>
-                </td>
-                <td>${product.satuan || '-'}</td>
-                <td>${formatCurrency(product.harga_beli || 0)}</td>
-                <td>${formatCurrency(product.harga_jual_umum || 0)}</td>
-                <td class="margin-cell ${product.margin && product.margin > 0 ? 'positive' : ''}">${margin}</td>
-                <td>
-                    <span class="stock-status ${stockStatusClass}">${stockStatusText}</span>
-                </td>
-                <td>
-                    <button class="action-btn view" onclick="showProductDetail('${product.kd_produk}')">
-                        <i class="fas fa-eye"></i>
-                        Detail
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function updateProductsPagination(pagination) {
-    if (!pagination) return;
-    
-    // Update pagination info
-    const paginationInfo = document.getElementById('paginationInfo');
-    if (paginationInfo) {
-        const startItem = ((pagination.current_page - 1) * pagination.items_per_page) + 1;
-        const endItem = Math.min(pagination.current_page * pagination.items_per_page, pagination.total_items);
-        paginationInfo.textContent = `Menampilkan ${startItem}-${endItem} dari ${pagination.total_items} produk`;
-    }
-    
-    // Update pagination buttons
-    const prevBtn = document.getElementById('prevPage');
-    const nextBtn = document.getElementById('nextPage');
-    
-    if (prevBtn) {
-        prevBtn.disabled = !pagination.has_prev;
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = !pagination.has_next;
-    }
-    
-    // Update page numbers
-    const pageNumbers = document.getElementById('pageNumbers');
-    if (pageNumbers) {
-        pageNumbers.innerHTML = generatePageNumbers(pagination);
-    }
-}
-
-function generatePageNumbers(pagination) {
-    const current = pagination.current_page;
-    const total = pagination.total_pages;
-    const maxVisible = 5;
-    
-    let start = Math.max(1, current - Math.floor(maxVisible / 2));
-    let end = Math.min(total, start + maxVisible - 1);
-    
-    if (end - start + 1 < maxVisible) {
-        start = Math.max(1, end - maxVisible + 1);
-    }
-    
-    let html = '';
-    
-    // First page
-    if (start > 1) {
-        html += `<span class="page-number" onclick="goToPage(1)">1</span>`;
-        if (start > 2) {
-            html += `<span class="page-ellipsis">...</span>`;
-        }
-    }
-    
-    // Page numbers
-    for (let i = start; i <= end; i++) {
-        html += `<span class="page-number ${i === current ? 'active' : ''}" onclick="goToPage(${i})">${i}</span>`;
-    }
-    
-    // Last page
-    if (end < total) {
-        if (end < total - 1) {
-            html += `<span class="page-ellipsis">...</span>`;
-        }
-        html += `<span class="page-number" onclick="goToPage(${total})">${total}</span>`;
-    }
-    
-    return html;
-}
-
-function goToPage(page) {
-    currentProductsPage = page;
-    loadProducts();
-}
-
-async function showProductDetail(productId) {
-    const modal = document.getElementById('productModal');
-    const loadingDiv = modal.querySelector('.product-detail-loading');
-    const contentDiv = modal.querySelector('.product-detail-content');
-    
-    // Show modal and loading state
-    modal.style.display = 'block';
-    loadingDiv.style.display = 'block';
-    contentDiv.style.display = 'none';
-    
-    try {
-        const productData = await fetchAPI(`products/${productId}`);
-        
-        if (productData) {
-            // Fill modal with product data
-            document.getElementById('modalProductCode').textContent = productData.kd_produk || '-';
-            document.getElementById('modalBarcode').textContent = productData.barcode || '-';
-            document.getElementById('modalProductName').textContent = productData.nama_produk || '-';
-            document.getElementById('modalCategory').textContent = productData.kategori || '-';
-            document.getElementById('modalSubCategory').textContent = productData.sub_kategori || '-';
-            document.getElementById('modalUnit').textContent = productData.satuan || '-';
-            
-            document.getElementById('modalStockToko').textContent = productData.stok_toko || 0;
-            document.getElementById('modalStockGudang').textContent = productData.stok_gudang || 0;
-            document.getElementById('modalTotalStock').textContent = productData.total_stok || 0;
-            document.getElementById('modalMinStock').textContent = productData.stok_minimal || 0;
-            
-            document.getElementById('modalBuyPrice').textContent = formatCurrency(productData.harga_beli || 0);
-            document.getElementById('modalSellPrice').textContent = formatCurrency(productData.harga_jual_umum || 0);
-            document.getElementById('modalMemberPrice').textContent = formatCurrency(productData.harga_jual_member || 0);
-            document.getElementById('modalWholesalePrice').textContent = formatCurrency(productData.harga_jual_grosir || 0);
-            document.getElementById('modalMargin').textContent = productData.margin ? `${productData.margin}%` : '-';
-            
-            if (productData.sales_analytics) {
-                document.getElementById('modalTotalSold').textContent = productData.sales_analytics.total_sold_30_days || 0;
-                document.getElementById('modalAvgDaily').textContent = productData.sales_analytics.avg_daily_sales || 0;
-                document.getElementById('modalDaysOfStock').textContent = 
-                    productData.sales_analytics.days_of_stock ? `${productData.sales_analytics.days_of_stock} hari` : '-';
-            }
-            
-            // Show content and hide loading
-            loadingDiv.style.display = 'none';
-            contentDiv.style.display = 'block';
-        }
-        
-    } catch (error) {
-        console.error('Error loading product detail:', error);
-        loadingDiv.innerHTML = `
-            <div style="color: red;">
-                <i class="fas fa-exclamation-triangle"></i>
-                Gagal memuat detail produk: ${error.message}
-            </div>
-        `;
-    }
+    // Products section initialization will be added here in the future
+    console.log('Products section initialized');
 }
 
 // Utility Functions
@@ -1299,10 +1037,6 @@ function showNotification(message, type = 'info') {
     
     // Add notification to page
     document.body.appendChild(notification);
-    console.log('Notification added to body:', notification);
-    
-    // Force a reflow to ensure the notification is rendered
-    notification.offsetHeight;
     
     // Auto remove after 5 seconds
     setTimeout(() => {
@@ -1310,7 +1044,6 @@ function showNotification(message, type = 'info') {
             notification.style.animation = 'slideOutUp 0.3s ease-in';
             setTimeout(() => {
                 notification.remove();
-                console.log('Notification removed');
             }, 300);
         }
     }, 5000);
@@ -1333,43 +1066,6 @@ function getNotificationColor(type) {
         default: return '#3498db';
     }
 }
-
-// Search functionality (placeholder for future use)
-function initSearch() {
-    const searchInput = document.querySelector('.search-box input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            
-            if (query.length > 2) {
-                // Search logic can be implemented here in the future
-                console.log('Search query:', query);
-            }
-        });
-    }
-}
-
-// Handle logout
-function logout() {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('username');
-    showNotification('Berhasil keluar', 'success');
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1000);
-}
-
-// Responsive handling
-function handleResize() {
-    const sidebar = document.querySelector('.sidebar');
-    
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        sidebarOpen = false;
-    }
-}
-
-window.addEventListener('resize', handleResize);
 
 // Add CSS animations
 const style = document.createElement('style');
@@ -1394,16 +1090,6 @@ style.textContent = `
             transform: translateX(-50%) translateY(-100%); 
             opacity: 0; 
         }
-    }
-    
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
     }
     
     @keyframes shake {
@@ -1433,13 +1119,11 @@ style.textContent = `
         border-radius: 50%;
     }
     
-    /* Make sure notification is on top of everything */
     .notification {
         position: fixed !important;
         z-index: 999999 !important;
     }
     
-    /* Mobile specific animations */
     @media (max-width: 768px) {
         @keyframes slideInDown {
             from { 
@@ -1466,11 +1150,17 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize search functionality (if needed in future)
-    initSearch();
-    
-    // Load initial revenue profit table data
-    loadRevenueProfitDataTabels();
-});
+// Search functionality (placeholder for future use)
+function initSearch() {
+    const searchInput = document.querySelector('.search-box input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (query.length > 2) {
+                // Search logic can be implemented here in the future
+                console.log('Search query:', query);
+            }
+        });
+    }
+}
