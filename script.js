@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initDashboard();
         initProductsSection();
         initNavigation();
+        
+        // Initialize table sorting with delegation
+        initGlobalTableSorting();
     }
     
     // Initialize search functionality (if needed in future)
@@ -940,6 +943,165 @@ function updateCategorySalesTable(products) {
     });
     
     console.log(`Category sales table updated with ${products.length} products`);
+    
+    // Initialize sorting after table is populated with data
+    if (products && products.length > 0) {
+        console.log('Calling initTableSorting...');
+        initTableSorting();
+    }
+}
+
+// Table Sorting Functions
+let currentSortColumn = '';
+let currentSortDirection = '';
+
+function initTableSorting() {
+    console.log('=== INITIALIZING TABLE SORTING ===');
+    
+    // Wait a bit more to ensure DOM is ready
+    setTimeout(() => {
+        const table = document.querySelector('#CategorySalesTable');
+        const headers = document.querySelectorAll('#CategorySalesTable th.sortable');
+        
+        console.log('Table found:', !!table);
+        console.log('Headers found:', headers.length);
+        
+        if (!table || headers.length === 0) {
+            console.log('Table or headers not found, retrying...');
+            return;
+        }
+        
+        // Remove all existing event listeners and add fresh ones
+        headers.forEach((header, index) => {
+            const column = header.getAttribute('data-column');
+            const type = header.getAttribute('data-type');
+            
+            console.log(`Header ${index}: ${column} (${type})`);
+            
+            // Remove any existing listeners by cloning
+            const newHeader = header.cloneNode(true);
+            header.parentNode.replaceChild(newHeader, header);
+            
+            // Add click event to new header
+            newHeader.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log(`CLICKED: ${column}`);
+                handleSort(column, type);
+            });
+            
+            newHeader.style.cursor = 'pointer';
+        });
+        
+        console.log('=== SORTING INITIALIZED ===');
+    }, 200);
+}
+
+function handleSort(column, type) {
+    console.log(`SORTING: ${column} (${type})`);
+    
+    // Toggle direction
+    if (currentSortColumn === column) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortDirection = 'asc';
+    }
+    
+    console.log(`Direction: ${currentSortDirection}`);
+    
+    // Update indicators
+    updateSortIndicators(column, currentSortDirection);
+    
+    // Sort the table
+    sortTable(column, currentSortDirection, type);
+}
+
+function updateSortIndicators(activeColumn, direction) {
+    const sortableHeaders = document.querySelectorAll('#CategorySalesTable th.sortable');
+    
+    sortableHeaders.forEach(header => {
+        const column = header.getAttribute('data-column');
+        header.classList.remove('sort-asc', 'sort-desc');
+        
+        if (column === activeColumn) {
+            header.classList.add(`sort-${direction}`);
+        }
+    });
+}
+
+function sortTable(column, direction, type) {
+    const tableBody = document.querySelector('#CategorySalesTable tbody');
+    const rows = Array.from(tableBody.querySelectorAll('tr'));
+    
+    console.log('Sorting table. Rows found:', rows.length);
+    
+    // Skip if no data or only placeholder row
+    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+        console.log('No data to sort or placeholder row');
+        return;
+    }
+    
+    // Get column index based on column name
+    const columnIndex = getColumnIndex(column);
+    console.log('Column index for', column, ':', columnIndex);
+    
+    if (columnIndex === -1) {
+        console.log('Invalid column index');
+        return;
+    }
+    
+    // Sort rows
+    const sortedRows = rows.sort((a, b) => {
+        let aValue = a.cells[columnIndex].textContent.trim();
+        let bValue = b.cells[columnIndex].textContent.trim();
+        
+        console.log('Comparing:', aValue, 'vs', bValue);
+        
+        // Handle different data types
+        if (type === 'number') {
+            // Remove currency formatting and convert to number
+            // Handle format like "Rp 123,456" or "123.456"
+            aValue = aValue.replace(/[Rp\s]/g, '').replace(/[,.]/g, '');
+            bValue = bValue.replace(/[Rp\s]/g, '').replace(/[,.]/g, '');
+            aValue = parseFloat(aValue) || 0;
+            bValue = parseFloat(bValue) || 0;
+            console.log('Numeric values:', aValue, 'vs', bValue);
+        } else {
+            // Text comparison (case insensitive)
+            aValue = aValue.toLowerCase();
+            bValue = bValue.toLowerCase();
+        }
+        
+        let comparison = 0;
+        if (type === 'number') {
+            comparison = aValue - bValue;
+        } else {
+            comparison = aValue.localeCompare(bValue);
+        }
+        
+        const result = direction === 'asc' ? comparison : -comparison;
+        console.log('Comparison result:', result);
+        return result;
+    });
+    
+    // Clear and repopulate table
+    tableBody.innerHTML = '';
+    sortedRows.forEach(row => {
+        tableBody.appendChild(row);
+    });
+    
+    console.log(`Table sorted by ${column} (${direction}) with ${sortedRows.length} rows`);
+}
+
+function getColumnIndex(column) {
+    const columnMap = {
+        'kode': 0,
+        'nama': 1,
+        'qty': 2,
+        'total': 3,
+        'laba': 4
+    };
+    return columnMap[column] || -1;
 }
 
 // Navigation Functions
@@ -1163,4 +1325,41 @@ function initSearch() {
             }
         });
     }
+}
+
+// Global Table Sorting with Event Delegation
+function initGlobalTableSorting() {
+    console.log('=== INITIALIZING GLOBAL TABLE SORTING ===');
+    
+    // Use event delegation on document level
+    document.addEventListener('click', function(e) {
+        const header = e.target.closest('#CategorySalesTable th.sortable');
+        if (!header) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const column = header.getAttribute('data-column');
+        const type = header.getAttribute('data-type');
+        
+        console.log(`GLOBAL SORT CLICKED: ${column} (${type})`);
+        
+        // Toggle direction
+        if (currentSortColumn === column) {
+            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSortColumn = column;
+            currentSortDirection = 'asc';
+        }
+        
+        console.log(`Direction: ${currentSortDirection}`);
+        
+        // Update indicators
+        updateSortIndicators(column, currentSortDirection);
+        
+        // Sort the table
+        sortTable(column, currentSortDirection, type);
+    });
+    
+    console.log('Global table sorting initialized');
 }

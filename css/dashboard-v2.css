@@ -1756,7 +1756,6 @@ canvas#categorySalesChart {
   height: 480px !important;
   max-height: 480px !important;
   min-height: 480px !important;
-  width: 100% !important;
 }
 
 .chart-container .chart-wrapper canvas {
@@ -1800,7 +1799,68 @@ div.chart-container {
   gap: 2rem !important;
 }
 
-.charts-row .chart-container {
-  height: 700px !important;
-  min-height: 700px !important;
+/* ===== SORTABLE TABLE STYLES ===== */
+.sortable-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.sortable-table th.sortable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sortable-table th.sortable .sort-icon {
+  margin-left: 0.5rem;
+  opacity: 0.5;
+  font-size: 0.8rem;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sortable-table th.sortable:hover .sort-icon {
+  opacity: 0.8;
+}
+
+.sortable-table th.sortable.sort-asc .sort-icon {
+  opacity: 1;
+  color: #3498db;
+  transform: rotate(0deg);
+}
+
+.sortable-table th.sortable.sort-asc .sort-icon:before {
+  content: "\f0de"; /* fa-sort-up */
+}
+
+.sortable-table th.sortable.sort-desc .sort-icon {
+  opacity: 1;
+  color: #3498db;
+  transform: rotate(0deg);
+}
+
+.sortable-table th.sortable.sort-desc .sort-icon:before {
+  content: "\f0dd"; /* fa-sort-down */
+}
+
+.sortable-table th.sortable.sort-asc .sort-icon,
+.sortable-table th.sortable.sort-desc .sort-icon {
+  animation: sortPulse 0.3s ease;
+}
+
+@keyframes sortPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Sort indicator positioning */
+.sortable-table th.sortable {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hover effect for sortable headers */
+.sortable-table th.sortable:active {
+  background-color: rgba(52, 152, 219, 0.1);
 }

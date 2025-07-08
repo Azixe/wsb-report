@@ -204,14 +204,24 @@
                             </div>
                         </div>
                         <div class="table-wrapper">
-                            <table id="CategorySalesTable" class="data-table">
+                            <table id="CategorySalesTable" class="data-table sortable-table">
                                 <thead>
                                     <tr>
-                                        <th>Kode</th>
-                                        <th>Nama Produk</th>
-                                        <th>Qty</th>
-                                        <th>Total</th>
-                                        <th>Laba</th>
+                                        <th class="sortable" data-column="kode" data-type="text">
+                                            Kode <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="nama" data-type="text">
+                                            Nama Produk <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="qty" data-type="number">
+                                            Qty <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="total" data-type="number">
+                                            Total <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="laba" data-type="number">
+                                            Laba <i class="fas fa-sort sort-icon"></i>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
