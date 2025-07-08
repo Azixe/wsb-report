@@ -356,10 +356,11 @@
   flex: 1;
   min-height: 500px;
   position: relative;
-  margin-top: 1rem;
+  margin-top: 0.5rem; /* Reduced from 1rem to 0.5rem */
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to flex-start */
   justify-content: center;
+  padding-top: 0.5rem; /* Added padding to prevent cutoff */
 }
 
 .chart-wrapper canvas {
@@ -371,8 +372,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem; /* Reduced from 1.5rem to 1rem */
+  padding-bottom: 0.75rem; /* Reduced from 1rem to 0.75rem */
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 1rem;
@@ -2058,4 +2059,38 @@ div.chart-container {
     padding: 0.375rem;
     font-size: 0.85rem;
   }
+}
+
+/* ===== CHART POSITIONING ADJUSTMENT ===== */
+.chart-wrapper {
+  flex: 1;
+  min-height: 500px;
+  position: relative;
+  margin-top: 0.5rem; /* Reduced from 1rem to 0.5rem */
+  display: flex;
+  align-items: flex-start; /* Changed from center to flex-start */
+  justify-content: center;
+  padding-top: 0.5rem; /* Added padding to prevent cutoff */
+}
+
+/* Specific adjustment for daily trend chart */
+#dailyTrendChart {
+  margin-top: -10px; /* Move chart up slightly */
+}
+
+/* Chart container padding adjustment */
+.chart-container {
+  padding: 1.25rem 1.5rem 1.75rem 1.5rem; /* Increased bottom padding */
+}
+
+/* Chart header margin adjustment */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem; /* Reduced from 1.5rem to 1rem */
+  padding-bottom: 0.75rem; /* Reduced from 1rem to 0.75rem */
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
