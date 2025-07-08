@@ -1184,6 +1184,76 @@ canvas {
   min-height: 480px !important;
 }
 
+/* ===== TREND CHARTS SPECIFIC STYLING ===== */
+#dailyTrendChart,
+#weeklyTrendChart {
+  width: 100% !important;
+  height: 480px !important;
+  max-height: 480px !important;
+  min-height: 480px !important;
+}
+
+/* Trend chart containers */
+.chart-container .chart-wrapper #dailyTrendChart,
+.chart-container .chart-wrapper #weeklyTrendChart {
+  height: 480px !important;
+  max-height: 480px !important;
+  min-height: 480px !important;
+}
+
+/* Trend period selector styling */
+#trendPeriod,
+#weeklyPeriod {
+  min-width: 150px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#trendPeriod:hover,
+#weeklyPeriod:hover {
+  border-color: #3b82f6;
+  background: #f1f5f9;
+}
+
+#trendPeriod:focus,
+#weeklyPeriod:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Chart grid responsive for trend charts */
+@media (max-width: 1200px) {
+  #dailyTrendChart,
+  #weeklyTrendChart {
+    height: 400px !important;
+    max-height: 400px !important;
+    min-height: 400px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #dailyTrendChart,
+  #weeklyTrendChart {
+    height: 350px !important;
+    max-height: 350px !important;
+    min-height: 350px !important;
+  }
+  
+  #trendPeriod,
+  #weeklyPeriod {
+    min-width: 120px;
+    font-size: 0.8rem;
+  }
+}
+
 /* ===== ADDITIONAL IMPROVEMENTS ===== */
 
 /* ===== LOADING STATES ===== */

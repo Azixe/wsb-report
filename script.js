@@ -68,6 +68,7 @@ function initDashboard() {
     initCharts();
     initDateRange();
     initCategoryControls();
+    initTrendControls();
     loadDashboardData();
     loadCategories();
     updateUserInfo();
@@ -338,6 +339,225 @@ function initCharts() {
         // Load initial overview data
         loadOverviewCategoryData();
     }
+    
+    // Daily Sales Trend Chart
+    const dailyTrendCtx = document.getElementById('dailyTrendChart');
+    if (dailyTrendCtx) {
+        dailyTrendCtx.style.height = '480px';
+        dailyTrendCtx.style.maxHeight = '480px';
+        dailyTrendCtx.style.minHeight = '480px';
+        
+        chartInstances.dailyTrendChart = new Chart(dailyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Omset Harian',
+                    data: [],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3498db',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Jumlah Transaksi',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    pointBackgroundColor: '#e74c3c',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    return 'Omset: ' + formatCurrency(context.raw);
+                                } else {
+                                    return 'Transaksi: ' + context.raw + ' nota';
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Omset (Rp)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' nota';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Transaksi'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Load initial daily trend data
+        loadDailyTrendData();
+    }
+    
+    // Weekly Sales Trend Chart
+    const weeklyTrendCtx = document.getElementById('weeklyTrendChart');
+    if (weeklyTrendCtx) {
+        weeklyTrendCtx.style.height = '480px';
+        weeklyTrendCtx.style.maxHeight = '480px';
+        weeklyTrendCtx.style.minHeight = '480px';
+        
+        chartInstances.weeklyTrendChart = new Chart(weeklyTrendCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Omset Mingguan',
+                    data: [],
+                    backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                    borderColor: '#2ecc71',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }, {
+                    label: 'Rata-rata Harian',
+                    data: [],
+                    type: 'line',
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.2)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    pointBackgroundColor: '#f39c12',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    return 'Omset Mingguan: ' + formatCurrency(context.raw);
+                                } else {
+                                    return 'Rata-rata Harian: ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Load initial weekly trend data
+        loadWeeklyTrendData();
+    }
 }
 
 function updateUserInfo() {
@@ -583,6 +803,86 @@ function initOverviewDateRange() {
             });
         });
     }
+}
+
+function initTrendControls() {
+    // Daily Trend Controls
+    const trendPeriod = document.getElementById('trendPeriod');
+    const trendStartDate = document.getElementById('trendStartDate');
+    const trendEndDate = document.getElementById('trendEndDate');
+    const applyTrendBtn = document.getElementById('applyTrendFilter');
+    
+    if (trendPeriod && trendStartDate && trendEndDate && applyTrendBtn) {
+        // Set default date range based on selected period
+        setTrendDateRange();
+        
+        // Period selection change
+        trendPeriod.addEventListener('change', function() {
+            setTrendDateRange();
+            loadDailyTrendData();
+        });
+        
+        // Apply button
+        applyTrendBtn.addEventListener('click', function() {
+            const start = trendStartDate.value;
+            const end = trendEndDate.value;
+            
+            if (!start || !end) {
+                showNotification('Pilih tanggal mulai dan selesai untuk trend', 'warning');
+                return;
+            }
+            
+            if (new Date(start) > new Date(end)) {
+                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
+                return;
+            }
+            
+            loadDailyTrendData(start, end);
+            showNotification(`Memuat trend penjualan dari ${start} sampai ${end}`, 'info');
+        });
+        
+        // Enter key support
+        [trendStartDate, trendEndDate].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyTrendBtn.click();
+                }
+            });
+        });
+    }
+    
+    // Weekly Trend Controls
+    const weeklyPeriod = document.getElementById('weeklyPeriod');
+    const applyWeeklyBtn = document.getElementById('applyWeeklyFilter');
+    
+    if (weeklyPeriod && applyWeeklyBtn) {
+        applyWeeklyBtn.addEventListener('click', function() {
+            const weeks = parseInt(weeklyPeriod.value);
+            loadWeeklyTrendData(weeks);
+            showNotification(`Memuat trend mingguan ${weeks} minggu terakhir`, 'info');
+        });
+        
+        weeklyPeriod.addEventListener('change', function() {
+            const weeks = parseInt(this.value);
+            loadWeeklyTrendData(weeks);
+        });
+    }
+}
+
+function setTrendDateRange() {
+    const trendPeriod = document.getElementById('trendPeriod');
+    const trendStartDate = document.getElementById('trendStartDate');
+    const trendEndDate = document.getElementById('trendEndDate');
+    
+    if (!trendPeriod || !trendStartDate || !trendEndDate) return;
+    
+    const days = parseInt(trendPeriod.value);
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+    
+    trendStartDate.value = startDate.toISOString().split('T')[0];
+    trendEndDate.value = endDate.toISOString().split('T')[0];
 }
 
 // Overview Category Data Functions - BACKEND TERHUBUNG
@@ -1362,4 +1662,173 @@ function initGlobalTableSorting() {
     });
     
     console.log('Global table sorting initialized');
+}
+
+// Daily Sales Trend Data Functions
+async function loadDailyTrendData(startDate = null, endDate = null) {
+    try {
+        const params = {};
+        
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        } else {
+            // Default to 30 days
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - 30);
+            params.start_date = startDate.toISOString().split('T')[0];
+            params.end_date = endDate.toISOString().split('T')[0];
+        }
+        
+        console.log('Loading daily trend data for:', params);
+        
+        const data = await fetchAPI('daily-sales-trend', params);
+        
+        if (data && Array.isArray(data)) {
+            console.log('Received daily trend data:', data);
+            updateDailyTrendChart(data);
+        } else {
+            console.log('No valid daily trend data received, using fallback');
+            // Fallback with demo data
+            const fallbackData = generateFallbackDailyData(30);
+            updateDailyTrendChart(fallbackData);
+        }
+    } catch (error) {
+        console.error('Error loading daily trend data:', error);
+        showNotification('Gagal memuat data trend harian', 'error');
+        
+        // Use fallback data
+        const fallbackData = generateFallbackDailyData(30);
+        updateDailyTrendChart(fallbackData);
+    }
+}
+
+async function loadWeeklyTrendData(weeks = 8) {
+    try {
+        const params = { weeks: weeks };
+        
+        console.log('Loading weekly trend data for weeks:', weeks);
+        
+        const data = await fetchAPI('weekly-sales-trend', params);
+        
+        if (data && Array.isArray(data)) {
+            console.log('Received weekly trend data:', data);
+            updateWeeklyTrendChart(data);
+        } else {
+            console.log('No valid weekly trend data received, using fallback');
+            // Fallback with demo data
+            const fallbackData = generateFallbackWeeklyData(weeks);
+            updateWeeklyTrendChart(fallbackData);
+        }
+    } catch (error) {
+        console.error('Error loading weekly trend data:', error);
+        showNotification('Gagal memuat data trend mingguan', 'error');
+        
+        // Use fallback data
+        const fallbackData = generateFallbackWeeklyData(weeks);
+        updateWeeklyTrendChart(fallbackData);
+    }
+}
+
+function updateDailyTrendChart(data) {
+    const chart = chartInstances.dailyTrendChart;
+    if (!chart || !data || data.length === 0) return;
+    
+    const labels = data.map(item => {
+        const date = new Date(item.tanggal || item.date);
+        return date.toLocaleDateString('id-ID', { 
+            weekday: 'short',
+            month: 'short', 
+            day: 'numeric' 
+        });
+    });
+    
+    const omsetData = data.map(item => parseFloat(item.total_omset || item.omset || 0));
+    const transaksiData = data.map(item => parseInt(item.jumlah_transaksi || item.transaksi || 0));
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = omsetData;
+    chart.data.datasets[1].data = transaksiData;
+    
+    chart.update('active');
+    
+    console.log('Daily trend chart updated with', data.length, 'days of data');
+}
+
+function updateWeeklyTrendChart(data) {
+    const chart = chartInstances.weeklyTrendChart;
+    if (!chart || !data || data.length === 0) return;
+    
+    const labels = data.map(item => item.minggu || item.week || `Minggu ${item.week_number || ''}`);
+    const omsetData = data.map(item => parseFloat(item.total_omset || item.omset || 0));
+    const rataRataData = data.map(item => parseFloat(item.rata_rata_harian || item.avg_daily || 0));
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = omsetData;
+    chart.data.datasets[1].data = rataRataData;
+    
+    chart.update('active');
+    
+    console.log('Weekly trend chart updated with', data.length, 'weeks of data');
+}
+
+// Fallback data generators for demo purposes
+function generateFallbackDailyData(days) {
+    const data = [];
+    const baseAmount = 500000;
+    
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        // Simulate weekly pattern (weekend lower sales)
+        const dayOfWeek = date.getDay();
+        const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.7 : 1;
+        
+        // Add some randomness
+        const randomMultiplier = 0.7 + (Math.random() * 0.6); // 0.7 to 1.3
+        
+        const omset = Math.round(baseAmount * weekendMultiplier * randomMultiplier);
+        const transaksi = Math.round(omset / 50000); // Average transaction value ~50k
+        
+        data.push({
+            tanggal: date.toISOString().split('T')[0],
+            total_omset: omset,
+            jumlah_transaksi: transaksi
+        });
+    }
+    
+    return data;
+}
+
+function generateFallbackWeeklyData(weeks) {
+    const data = [];
+    const baseAmount = 3500000; // Weekly target
+    
+    for (let i = weeks - 1; i >= 0; i--) {
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - (i * 7));
+        
+        // Add some randomness and growth trend
+        const trendMultiplier = 1 + (weeks - i - 1) * 0.02; // Small growth trend
+        const randomMultiplier = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
+        
+        const omset = Math.round(baseAmount * trendMultiplier * randomMultiplier);
+        const avgDaily = Math.round(omset / 7);
+        
+        const weekLabel = `Minggu ${weekStart.toLocaleDateString('id-ID', { 
+            month: 'short', 
+            day: 'numeric' 
+        })}`;
+        
+        data.push({
+            minggu: weekLabel,
+            total_omset: omset,
+            rata_rata_harian: avgDaily,
+            week_number: weeks - i
+        });
+    }
+    
+    return data;
 }

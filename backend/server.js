@@ -466,239 +466,118 @@ app.get('/api/category-sales-summary', async (req, res) => {
     }
 });
 
-// Debug endpoint untuk melihat struktur database
-app.get('/api/debug/tables', async (req, res) => {
+// Daily Sales Trend endpoint
+app.get('/api/daily-sales-trend', async (req, res) => {
     try {
-        console.log('🔍 Checking database tables...');
-        
-        // Cek tabel yang ada
-        const tablesQuery = "SHOW TABLES";
-        const tables = await executeQuery(tablesQuery);
-        
-        console.log('Available tables:', tables);
-        
-        // Cek struktur tabel kategori
-        let kategoriBryStruct = null;
-        try {
-            const kategoriQuery = "DESCRIBE kategori";
-            kategoriBryStruct = await executeQuery(kategoriQuery);
-        } catch (e) {
-            console.log('Kategori table not found or error:', e.message);
+        const startDate = req.query.start_date;
+        const endDate = req.query.end_date;
+        let days = parseInt(req.query.days) || 30;
+
+        console.log(`📈 Loading daily sales trend for ${days} days or date range ${startDate} - ${endDate}`);
+
+        let query, params;
+
+        if (startDate && endDate) {
+            // Use custom date range
+            query = `
+                SELECT 
+                    DATE(pd.tgl_jual) as tanggal,
+                    SUM(pd.total) as total_omset,
+                    COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
+                    SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
+                FROM penjualan_det pd
+                WHERE DATE(pd.tgl_jual) BETWEEN ? AND ?
+                GROUP BY DATE(pd.tgl_jual)
+                ORDER BY tanggal ASC
+            `;
+            params = [startDate, endDate];
+        } else {
+            // Use days parameter
+            query = `
+                SELECT 
+                    DATE(pd.tgl_jual) as tanggal,
+                    SUM(pd.total) as total_omset,
+                    COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
+                    SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
+                FROM penjualan_det pd
+                WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+                GROUP BY DATE(pd.tgl_jual)
+                ORDER BY tanggal ASC
+            `;
+            params = [days];
         }
-        
-        // Cek struktur tabel pecah_stok
-        let pecahStokStruct = null;
-        try {
-            const pecahStokQuery = "DESCRIBE pecah_stok";
-            pecahStokStruct = await executeQuery(pecahStokQuery);
-        } catch (e) {
-            console.log('Pecah_stok table not found or error:', e.message);
-        }
-        
-        // Cek sample data kategori
-        let kategoripData = null;
-        try {
-            const sampleKategoriQuery = "SELECT * FROM kategori LIMIT 10";
-            kategoripData = await executeQuery(sampleKategoriQuery);
-        } catch (e) {
-            console.log('Cannot get kategori data:', e.message);
-        }
-        
-        // Cek sample data pecah_stok
-        let pecahStokData = null;
-        try {
-            const samplePecahStokQuery = "SELECT DISTINCT kategori FROM pecah_stok WHERE kategori IS NOT NULL LIMIT 10";
-            pecahStokData = await executeQuery(samplePecahStokQuery);
-        } catch (e) {
-            console.log('Cannot get pecah_stok data:', e.message);
-        }
-        
-        res.json({
-            tables: tables,
-            kategori_structure: kategoriBryStruct,
-            pecah_stok_structure: pecahStokStruct,
-            kategori_data: kategoripData,
-            pecah_stok_categories: pecahStokData
-        });
-        
+
+        const results = await executeQuery(query, params);
+
+        // Format data untuk Chart.js
+        const trendData = results.map(row => ({
+            tanggal: row.tanggal,
+            total_omset: parseFloat(row.total_omset) || 0,
+            jumlah_transaksi: parseInt(row.jumlah_transaksi) || 0,
+            total_qty: parseInt(row.total_qty) || 0
+        }));
+
+        console.log(`✅ Daily trend data loaded: ${trendData.length} days`);
+
+        res.json(trendData);
+
     } catch (error) {
-        console.error('Debug tables error:', error);
+        console.error('Daily sales trend API error:', error);
         res.status(500).json({
-            error: 'Debug failed: ' + error.message
+            error: 'Failed to load daily sales trend: ' + error.message
         });
     }
 });
 
-// Products/Items endpoint
-app.get('/api/products', async (req, res) => {
+// Weekly Sales Trend endpoint
+app.get('/api/weekly-sales-trend', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const search = req.query.search || '';
-        const category = req.query.category || '';
-        const lowStock = req.query.low_stock === 'true';
-        const offset = (page - 1) * limit;
-        
-        console.log(`📦 Loading products - Page: ${page}, Limit: ${limit}, Search: "${search}", Category: "${category}", Low Stock: ${lowStock}`);
-        
-        // Build WHERE conditions
-        let whereConditions = [];
-        let queryParams = [];
-        
-        if (search) {
-            whereConditions.push('(ps.nama_produk LIKE ? OR ps.kd_produk LIKE ? OR ps.barcode LIKE ?)');
-            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-        }
-        
-        if (category) {
-            whereConditions.push('ps.kategori = ?');
-            queryParams.push(category);
-        }
-        
-        if (lowStock) {
-            whereConditions.push('((p.stok_toko + p.stok_gudang) < p.stok_minimal AND p.stok_minimal > 0)');
-        }
-        
-        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
-        
-        // Main query untuk mendapatkan data produk
-        const mainQuery = `
+        const weeks = parseInt(req.query.weeks) || 8;
+
+        console.log(`📊 Loading weekly sales trend for ${weeks} weeks`);
+
+        const query = `
             SELECT 
-                ps.barcode,
-                ps.kd_produk,
-                ps.nama_produk,
-                ps.satuan,
-                ps.kategori,
-                ps.sub_kategori,
-                ps.harga_beli,
-                ps.harga_jual_umum,
-                ps.harga_jual_member,
-                ps.harga_jual_grosir,
-                IFNULL(p.stok_toko, 0) as stok_toko,
-                IFNULL(p.stok_gudang, 0) as stok_gudang,
-                IFNULL(p.stok_minimal, 0) as stok_minimal,
-                (IFNULL(p.stok_toko, 0) + IFNULL(p.stok_gudang, 0)) as total_stok,
-                ps.kd_dsb as distributor_code,
-                ps.last_update
-            FROM pecah_stok ps
-            LEFT JOIN produk p ON ps.kd_produk = p.kd_produk
-            ${whereClause}
-            ORDER BY ps.total_stok ASC
-            LIMIT ${limit} OFFSET ${offset}
+                YEARWEEK(pd.tgl_jual, 1) as week_number,
+                CONCAT('Minggu ', WEEK(MIN(pd.tgl_jual), 1) + 1, ' (', 
+                       DATE_FORMAT(MIN(pd.tgl_jual), '%d %b'), ' - ', 
+                       DATE_FORMAT(MAX(pd.tgl_jual), '%d %b'), ')') as minggu,
+                SUM(pd.total) as total_omset,
+                COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
+                ROUND(SUM(pd.total) / COUNT(DISTINCT DATE(pd.tgl_jual)), 2) as rata_rata_harian,
+                SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
+            FROM penjualan_det pd
+            WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)
+            GROUP BY YEARWEEK(pd.tgl_jual, 1)
+            ORDER BY week_number ASC
         `;
-        
-        // Count query untuk pagination
-        const countQuery = `
-            SELECT COUNT(*) as total
-            FROM pecah_stok ps
-            LEFT JOIN produk p ON ps.kd_produk = p.kd_produk
-            ${whereClause}
-        `;
-        
-        // Execute queries
-        const countParams = [...queryParams];
-        const mainParams = [...queryParams];
-        
-        const [countResult, productsResult] = await Promise.all([
-            executeQuery(countQuery, countParams),
-            executeQuery(mainQuery, mainParams)
-        ]);
-        
-        const totalItems = countResult[0]?.total || 0;
-        const totalPages = Math.ceil(totalItems / limit);
-        
-        // Calculate stock status for each product
-        const products = productsResult.map(product => ({
-            ...product,
-            stock_status: product.stok_minimal > 0 && product.total_stok < product.stok_minimal ? 'low' : 
-                         product.total_stok === 0 ? 'out' : 'normal',
-            margin: product.harga_jual_umum && product.harga_beli ? 
-                   ((product.harga_jual_umum - product.harga_beli) / product.harga_beli * 100).toFixed(2) : null
+
+        const results = await executeQuery(query, [weeks]);
+
+        // Format data untuk Chart.js
+        const weeklyData = results.map(row => ({
+            week_number: row.week_number,
+            minggu: row.minggu,
+            total_omset: parseFloat(row.total_omset) || 0,
+            jumlah_transaksi: parseInt(row.jumlah_transaksi) || 0,
+            rata_rata_harian: parseFloat(row.rata_rata_harian) || 0,
+            total_qty: parseInt(row.total_qty) || 0
         }));
-        
-        console.log(`✅ Found ${productsResult.length} products, Total: ${totalItems}`);
-        
-        res.json({
-            products,
-            pagination: {
-                current_page: page,
-                total_pages: totalPages,
-                total_items: totalItems,
-                items_per_page: limit,
-                has_next: page < totalPages,
-                has_prev: page > 1
-            },
-            filters: {
-                search,
-                category,
-                low_stock: lowStock
-            }
-        });
-        
+
+        console.log(`✅ Weekly trend data loaded: ${weeklyData.length} weeks`);
+
+        res.json(weeklyData);
+
     } catch (error) {
-        console.error('Products API error:', error);
-        
-        // Fallback data
-        const fallbackProducts = [
-            {
-                barcode: '8888000000001',
-                kd_produk: 'P001',
-                nama_produk: 'Contoh Produk A',
-                satuan: 'PCS',
-                kategori: 'MAKANAN',
-                sub_kategori: 'Snack',
-                harga_beli: 5000,
-                harga_jual_umum: 7000,
-                harga_jual_member: 6500,
-                harga_jual_grosir: 6000,
-                stok_toko: 50,
-                stok_gudang: 100,
-                stok_minimal: 10,
-                total_stok: 150,
-                stock_status: 'normal',
-                margin: '40.00',
-                distributor_code: 'D001',
-                last_update: new Date().toISOString()
-            },
-            {
-                barcode: '8888000000002',
-                kd_produk: 'P002',
-                nama_produk: 'Contoh Produk B',
-                satuan: 'BOX',
-                kategori: 'MINUMAN',
-                sub_kategori: 'Soft Drink',
-                harga_beli: 25000,
-                harga_jual_umum: 35000,
-                harga_jual_member: 32000,
-                harga_jual_grosir: 30000,
-                stok_toko: 5,
-                stok_gudang: 2,
-                stok_minimal: 20,
-                total_stok: 7,
-                stock_status: 'low',
-                margin: '40.00',
-                distributor_code: 'D002',
-                last_update: new Date().toISOString()
-            }
-        ];
-        
-        res.json({
-            products: fallbackProducts,
-            pagination: {
-                current_page: 1,
-                total_pages: 1,
-                total_items: fallbackProducts.length,
-                items_per_page: 20,
-                has_next: false,
-                has_prev: false
-            },
-            error: 'Using fallback data: ' + error.message
+        console.error('Weekly sales trend API error:', error);
+        res.status(500).json({
+            error: 'Failed to load weekly sales trend: ' + error.message
         });
     }
 });
 
 // Product detail endpoint
-app.get('/api/products/:productId', async (req, res) => {
+app.get('/api/product/:productId', async (req, res) => {
     try {
         const productId = req.params.productId;
         

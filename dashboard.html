@@ -128,6 +128,30 @@
                         </div>
                     </div>
                     
+                    <!-- Daily Sales Trend Chart -->
+                    <div class="chart-container" style="height: 700px !important; min-height: 700px !important;">
+                        <div class="chart-header">
+                            <h3>Trend Penjualan Harian</h3>
+                            <div class="chart-controls">
+                                <select id="trendPeriod" class="category-select">
+                                    <option value="7">7 Hari Terakhir</option>
+                                    <option value="14">14 Hari Terakhir</option>
+                                    <option value="30" selected>30 Hari Terakhir</option>
+                                </select>
+                                <input type="date" id="trendStartDate" class="date-input">
+                                <span>-</span>
+                                <input type="date" id="trendEndDate" class="date-input">
+                                <button id="applyTrendFilter" class="apply-btn">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 550px !important; min-height: 550px !important;">
+                            <canvas id="dailyTrendChart" style="height: 500px !important; max-height: 500px !important; min-height: 500px !important;"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Second Charts Row -->
+                <div class="charts-row">
                     <!-- Category Sales Chart -->
                     <div class="chart-container" style="height: 700px !important; min-height: 700px !important;">
                         <div class="chart-header">
@@ -144,6 +168,24 @@
                         </div>
                         <div class="chart-wrapper" style="height: 550px !important; min-height: 550px !important;">
                             <canvas id="categorySalesChart" style="height: 500px !important; max-height: 500px !important; min-height: 500px !important;"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Weekly Summary Chart -->
+                    <div class="chart-container" style="height: 700px !important; min-height: 700px !important;">
+                        <div class="chart-header">
+                            <h3>Ringkasan Penjualan Mingguan</h3>
+                            <div class="chart-controls">
+                                <select id="weeklyPeriod" class="category-select">
+                                    <option value="4">4 Minggu Terakhir</option>
+                                    <option value="8" selected>8 Minggu Terakhir</option>
+                                    <option value="12">12 Minggu Terakhir</option>
+                                </select>
+                                <button id="applyWeeklyFilter" class="apply-btn">Terapkan</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 550px !important; min-height: 550px !important;">
+                            <canvas id="weeklyTrendChart" style="height: 500px !important; max-height: 500px !important; min-height: 500px !important;"></canvas>
                         </div>
                     </div>
                 </div>
