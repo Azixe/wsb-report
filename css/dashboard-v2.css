@@ -1934,3 +1934,79 @@ div.chart-container {
 .sortable-table th.sortable:active {
   background-color: rgba(52, 152, 219, 0.1);
 }
+
+/* ===== MIXED LAYOUT STYLING (CHART + TABLE IN SAME ROW) ===== */
+.charts-row .table-container {
+  height: 700px !important;
+  min-height: 700px !important;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.charts-row .table-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.charts-row .table-container .table-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  flex-shrink: 0;
+}
+
+.charts-row .table-container .table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(700px - 100px);
+  padding: 0;
+}
+
+.charts-row .table-container .table-wrapper table {
+  margin: 0;
+}
+
+/* Table rows in chart layout should be flexible */
+.tables-row .chart-container {
+  height: 700px !important;
+  min-height: 700px !important;
+}
+
+/* Responsive adjustments for mixed layout */
+@media (max-width: 1200px) {
+  .charts-row .table-container {
+    height: 600px !important;
+    min-height: 600px !important;
+  }
+  
+  .charts-row .table-container .table-wrapper {
+    max-height: calc(600px - 100px);
+  }
+  
+  .tables-row .chart-container {
+    height: 600px !important;
+    min-height: 600px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-row .table-container {
+    height: 500px !important;
+    min-height: 500px !important;
+  }
+  
+  .charts-row .table-container .table-wrapper {
+    max-height: calc(500px - 80px);
+  }
+  
+  .tables-row .chart-container {
+    height: 500px !important;
+    min-height: 500px !important;
+  }
+}
