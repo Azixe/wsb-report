@@ -127,6 +127,29 @@
                         </div>
                     </div>
                     
+                    <!-- Data Omset dan Laba Table -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>Data Omset dan Laba</h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="RevenueProfitTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bulan</th>
+                                        <th>Total Omset</th>
+                                        <th>Total Laba</th>
+                                        <th>Total Nota</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Second Content Row -->
+                <div class="content-row">
                     <!-- Daily Sales Trend Chart -->
                     <div class="chart-container">
                         <div class="chart-header">
@@ -145,28 +168,6 @@
                         </div>
                         <div class="chart-wrapper">
                             <canvas id="dailyTrendChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Second Content Row -->
-                <div class="content-row">
-                    <!-- Category Sales Chart -->
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h3>Laporan Penjualan by Kategori</h3>
-                            <div class="chart-controls">
-                                <select id="categorySelect" class="category-select">
-                                    <option value="">Pilih Kategori...</option>
-                                </select>
-                                <input type="date" id="categoryStartDate" class="date-input">
-                                <span>-</span>
-                                <input type="date" id="categoryEndDate" class="date-input">
-                                <button id="applyCategoryFilter" class="apply-btn">Terapkan</button>
-                            </div>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="categorySalesChart"></canvas>
                         </div>
                     </div>
                     
@@ -223,23 +224,22 @@
                 
                 <!-- Tables Section -->
                 <div class="tables-row">
-                    <!-- Data Omset dan Laba Table -->
-                    <div class="table-container">
-                        <div class="table-header">
-                            <h2>Data Omset dan Laba</h2>
+                    <!-- Category Sales Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Laporan Penjualan by Kategori</h3>
+                            <div class="chart-controls">
+                                <select id="categorySelect" class="category-select">
+                                    <option value="">Pilih Kategori...</option>
+                                </select>
+                                <input type="date" id="categoryStartDate" class="date-input">
+                                <span>-</span>
+                                <input type="date" id="categoryEndDate" class="date-input">
+                                <button id="applyCategoryFilter" class="apply-btn">Terapkan</button>
+                            </div>
                         </div>
-                        <div class="table-wrapper">
-                            <table id="RevenueProfitTable" class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Bulan</th>
-                                        <th>Total Omset</th>
-                                        <th>Total Laba</th>
-                                        <th>Total Nota</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <div class="chart-wrapper">
+                            <canvas id="categorySalesChart"></canvas>
                         </div>
                     </div>
                     
