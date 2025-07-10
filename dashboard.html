@@ -111,7 +111,7 @@
             <!-- Chart and Table Layout -->
             <div class="content-grid">
                 <!-- Charts Section -->
-                <div class="content-row">
+                <div class="charts-section">
                     <div class="chart-container">
                         <div class="chart-header">
                             <h3>Omset & Laba</h3>
@@ -206,10 +206,16 @@
                                 <canvas id="overviewCategoryChart"></canvas>
                             </div>
                             <div class="overview-legend" id="overviewLegend">
-                                <p class="legend-item" id="totalCategories"></p>
-                                <p class="legend-item" id="totalCategorySales"></p>
-                                <p class="legend-item" id="topCategory"></p>
-                                <!-- Legend items will be populated by JavaScript -->
+                                <div class="legend-summary">
+                                    <p class="legend-item" id="totalCategories"></p>
+                                    <p class="legend-item" id="totalCategorySales"></p>
+                                </div>
+                                <div class="legend-details">
+                                    <h4>Top 5 Kategori Terlaris</h4>
+                                    <ul id="topCategoriesList" class="top-categories-list">
+                                        <!-- Populated by JavaScript -->
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>

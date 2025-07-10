@@ -957,42 +957,48 @@ function updateOverviewCategoryLegend(summary) {
         console.log('No summary data to update legend');
         return;
     }
-    
+
     // Update legend stats
     const totalCategoriesElement = document.getElementById('totalCategories');
     const totalCategorySalesElement = document.getElementById('totalCategorySales');
-    const topCategoryElement = document.getElementById('topCategory');
-    
+    const topCategoriesListElement = document.getElementById('topCategoriesList');
+
     if (totalCategoriesElement) {
-        totalCategoriesElement.textContent = `Total Categories: ${summary.total_categories || 0}`;
+        totalCategoriesElement.innerHTML = `<i class="fas fa-tags"></i> Total Kategori: <strong>${summary.total_categories || 0}</strong>`;
     }
-    
+
     if (totalCategorySalesElement) {
-        summary.total_omset = formatCurrency(summary.total_omset || 0);
-        totalCategorySalesElement.textContent = `Total Categories Sales: ` + `${summary.total_omset}`;
+        const formattedOmset = formatCurrency(summary.total_omset || 0);
+        totalCategorySalesElement.innerHTML = `<i class="fas fa-money-bill-wave"></i> Total Omset: <strong>${formattedOmset}</strong>`;
     }
-    
-    // Display top 5 categories instead of just top 1
-    if (topCategoryElement && summary.top_categories && Array.isArray(summary.top_categories)) {
-        const topCategories = summary.top_categories.slice(0, 5); // Get top 5
-        let topCategoryText = 'Top 5 Categories:<br>';
-        
-        topCategories.forEach((cat, index) => {
-            const rank = index + 1;
-            const percentage = cat.percentage || '0';
-            const omset = formatCurrency(cat.total_omset || 0);
-            topCategoryText += `${rank}. ${cat.name} - ${omset} (${percentage}%)<br>`;
-        });
-        
-        topCategoryElement.innerHTML = topCategoryText;
-    } else if (topCategoryElement && summary.top_category) {
-        // Fallback to single top category if top_categories not available
-        const topCat = summary.top_category;
-        topCategoryElement.textContent = `Top Category: ${topCat.name} (${topCat.percentage}%)`;
-    } else if (topCategoryElement) {
-        topCategoryElement.textContent = 'Top Categories: -';
+
+    // Update top 5 categories list
+    if (topCategoriesListElement && summary.top_categories && Array.isArray(summary.top_categories)) {
+        topCategoriesListElement.innerHTML = ''; // Clear previous list
+
+        if (summary.top_categories.length === 0) {
+            topCategoriesListElement.innerHTML = '<li>Tidak ada data kategori untuk ditampilkan.</li>';
+        } else {
+            summary.top_categories.forEach((cat, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'top-category-item';
+
+                // Add a color swatch corresponding to the pie chart
+                const colors = chartInstances.overviewCategoryChart.data.datasets[0].backgroundColor;
+                const color = colors[index % colors.length] || '#ccc';
+
+                listItem.innerHTML = `
+                    <span class="color-swatch" style="background-color: ${color};"></span>
+                    <span class="category-name">${cat.name}</span>
+                    <span class="category-percentage">${cat.percentage}%</span>
+                `;
+                topCategoriesListElement.appendChild(listItem);
+            });
+        }
+    } else if (topCategoriesListElement) {
+        topCategoriesListElement.innerHTML = '<li>Data kategori teratas tidak tersedia.</li>';
     }
-    
+
     console.log('Overview category legend updated:', summary);
 }
 
