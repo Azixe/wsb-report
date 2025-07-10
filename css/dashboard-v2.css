@@ -314,15 +314,19 @@
   margin: 0;
 }
 
-/* ===== CHARTS SECTION ===== */
-.charts-section {
-  display: grid;
-  grid-template-columns: 1fr;
+/* ===== CHARTS SECTION & CONTENT ROWS ===== */
+.charts-row,
+.content-row,
+.tables-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.chart-container {
+.chart-container,
+.table-container {
+  flex: 1 1 calc(50% - 0.75rem); /* Two columns with gap */
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
@@ -330,10 +334,11 @@
   animation: fadeInUp 0.8s ease-out;
   position: relative;
   overflow: hidden;
-  height: 600px;
   display: flex;
   flex-direction: column;
   background: white;
+  min-height: 450px; /* Set a minimum height */
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 
 .chart-container::before {
@@ -354,26 +359,28 @@
 
 .chart-wrapper {
   flex: 1;
-  min-height: 500px;
   position: relative;
-  margin-top: 0.5rem; /* Reduced from 1rem to 0.5rem */
+  margin-top: 1rem;
   display: flex;
-  align-items: flex-start; /* Changed from center to flex-start */
+  align-items: center;
   justify-content: center;
-  padding-top: 0.5rem; /* Added padding to prevent cutoff */
+  min-height: 300px; /* Ensure wrapper has a min-height */
 }
 
 .chart-wrapper canvas {
-  max-height: 500px !important;
-  max-width: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9; /* Maintain aspect ratio */
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem; /* Reduced from 1.5rem to 1rem */
-  padding-bottom: 0.75rem; /* Reduced from 1rem to 0.75rem */
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 1rem;
@@ -456,13 +463,13 @@
 /* ===== CHART CONTENT STYLING ===== */
 .chart-content {
   position: relative;
-  height: 500px; /* Increased height for better chart visibility */
+  height: auto; /* Changed from fixed height */
+  min-height: 350px; /* Added min-height */
   margin-bottom: 1rem;
   padding: 0.5rem 0;
 }
 
 #revenueChart {
-  max-height: 500px !important;
   background: transparent;
   border-radius: 0.5rem;
 }
@@ -471,7 +478,84 @@
 canvas {
   max-width: 100% !important;
   height: auto !important;
-  max-height: 500px !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar-toggle {
+    display: block;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .charts-row,
+  .content-row,
+  .tables-row {
+    flex-direction: column; /* Stack items vertically */
+  }
+
+  .chart-container,
+  .table-container {
+    flex-basis: 100%; /* Full width on smaller screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-container,
+  .table-container {
+    min-height: auto; /* Allow height to be flexible on mobile */
+  }
+
+  .chart-wrapper {
+    min-height: 250px; /* Adjust min-height for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .user-profile .user-info {
+    display: none;
+  }
 }
 
 /* ===== OVERVIEW SECTION ===== */
@@ -772,6 +856,32 @@ canvas {
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   margin-bottom: 2rem;
+  width: 100%;
+}
+
+/* Responsive untuk chart containers */
+.charts-row .chart-container {
+  width: 100%;
+  height: 700px !important;
+  min-height: 700px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.charts-row .chart-wrapper {
+  height: 550px !important;
+  min-height: 550px !important;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.charts-row .chart-wrapper canvas {
+  width: 100% !important;
+  height: 500px !important;
+  max-height: 500px !important;
+  min-height: 500px !important;
 }
 
 .table-section {
@@ -943,6 +1053,89 @@ canvas {
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
+
+/* Desktop Large (1200px+) - Charts tetap horizontal */
+@media (min-width: 1200px) {
+  .charts-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .charts-row .chart-container {
+    height: 700px !important;
+    min-height: 700px !important;
+  }
+  
+  .charts-row .chart-wrapper {
+    height: 550px !important;
+    min-height: 550px !important;
+  }
+  
+  .charts-row .chart-wrapper canvas {
+    height: 500px !important;
+    max-height: 500px !important;
+  }
+}
+
+/* Desktop Medium (992px - 1199px) - Charts tetap horizontal tapi sedikit lebih kecil */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .charts-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .charts-row .chart-container {
+    height: 650px !important;
+    min-height: 650px !important;
+  }
+  
+  .charts-row .chart-wrapper {
+    height: 500px !important;
+    min-height: 500px !important;
+  }
+  
+  .charts-row .chart-wrapper canvas {
+    height: 450px !important;
+    max-height: 450px !important;
+  }
+}
+/* Tablet (768px - 991px) - Charts mulai menjadi vertikal */
+@media (min-width: 768px) and (max-width: 991px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .charts-row .chart-container {
+    height: 600px !important;
+    min-height: 600px !important;
+    width: 100%;
+  }
+  
+  .charts-row .chart-wrapper {
+    height: 450px !important;
+    min-height: 450px !important;
+  }
+  
+  .charts-row .chart-wrapper canvas {
+    height: 400px !important;
+    max-height: 400px !important;
+    width: 100% !important;
+  }
+  
+  .chart-controls {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
 @media (max-width: 1024px) {
   .charts-section {
     grid-template-columns: 1fr;
@@ -958,10 +1151,6 @@ canvas {
     max-height: none;
   }
   
-  .chart-wrapper {
-    min-height: 450px;
-  }
-  
   .table-wrapper {
     max-height: 450px;
   }
@@ -972,41 +1161,17 @@ canvas {
     gap: 1.5rem;
   }
   
-  .charts-row,
   .tables-row {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   
-  .chart-container {
-    height: 550px;
-  }
-  
-  .chart-wrapper {
-    min-height: 500px;
-  }
-  
-  .chart-wrapper canvas {
-    max-height: 500px !important;
-  }
-  
   .table-wrapper {
     max-height: 400px;
   }
-  
-  .chart-controls {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .chart-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-    text-align: center;
-  }
 }
 
+/* Mobile (767px ke bawah) - Charts vertikal dengan ukuran yang dioptimalkan */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -1043,21 +1208,31 @@ canvas {
     gap: 1rem;
   }
   
-  .charts-row,
+  /* Charts menjadi vertikal di mobile */
+  .charts-row {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+  
   .tables-row {
     grid-template-columns: 1fr;
   }
   
-  .chart-container {
-    height: 500px;
+  .charts-row .chart-container {
+    height: 500px !important;
+    min-height: 500px !important;
+    width: 100%;
   }
   
-  .chart-wrapper {
-    min-height: 400px;
+  .charts-row .chart-wrapper {
+    height: 350px !important;
+    min-height: 350px !important;
   }
   
-  .chart-wrapper canvas {
-    max-height: 400px !important;
+  .charts-row .chart-wrapper canvas {
+    height: 300px !important;
+    max-height: 300px !important;
+    width: 100% !important;
   }
   
   .chart-controls {
@@ -1090,12 +1265,38 @@ canvas {
   }
 }
 
+/* Mobile Kecil (480px ke bawah) - Charts vertikal dengan ukuran lebih kecil */
 @media (max-width: 480px) {
   .dashboard-content {
     padding: 0.75rem;
   }
   
-  .chart-container,
+  /* Charts vertikal dengan ukuran yang dioptimalkan untuk mobile kecil */
+  .charts-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .charts-row .chart-container {
+    height: 450px !important;
+    min-height: 450px !important;
+    width: 100%;
+    border-radius: 0.75rem;
+    margin: 0 -0.25rem;
+    width: calc(100% + 0.5rem);
+  }
+
+  .charts-row .chart-wrapper {
+    height: 300px !important;
+    min-height: 300px !important;
+  }
+
+  .charts-row .chart-wrapper canvas {
+    height: 250px !important;
+    max-height: 250px !important;
+    width: 100% !important;
+  }
+  
   .table-container {
     border-radius: 0.75rem;
     margin: 0 -0.25rem;
@@ -1109,7 +1310,8 @@ canvas {
   }
   
   .date-input,
-  .apply-btn {
+  .apply-btn,
+  .category-select {
     width: 100%;
   }
   
@@ -1121,10 +1323,6 @@ canvas {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
-  }
-  
-  .chart-wrapper {
-    min-height: 300px;
   }
   
   .revenue-card {
@@ -2093,4 +2291,58 @@ div.chart-container {
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+/* ===== SMOOTH TRANSITIONS FOR RESPONSIVE BEHAVIOR ===== */
+
+.charts-row,
+.chart-container,
+.chart-wrapper {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Prevent layout shift during resize */
+.chart-wrapper canvas {
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+/* ===== BREAKPOINT SPECIFIC OPTIMIZATIONS ===== */
+
+/* Extra large screens (1400px+) */
+@media (min-width: 1400px) {
+  .charts-row {
+    gap: 3rem;
+  }
+  
+  .charts-row .chart-container {
+    height: 750px !important;
+    min-height: 750px !important;
+  }
+  
+  .charts-row .chart-wrapper {
+    height: 600px !important;
+    min-height: 600px !important;
+  }
+  
+  .charts-row .chart-wrapper canvas {
+    height: 550px !important;
+    max-height: 550px !important;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* GPU acceleration for smooth animations */
+.chart-container {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.chart-wrapper {
+  transform: translateZ(0);
+}
+
+/* Reduce reflows during resize */
+.charts-row {
+  contain: layout style;
 }
