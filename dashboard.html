@@ -26,6 +26,12 @@
                     <span>Overview Laporan</span>
                 </a>
             </li>
+            <li class="menu-item">
+                <a href="#user-sales">
+                    <i class="fas fa-users"></i>
+                    <span>Performa Operator</span>
+                </a>
+            </li>
         </ul>
         
         <div class="sidebar-footer" style="display: none;">
@@ -244,6 +250,72 @@
                                 <tbody>
                                     <tr>
                                         <td colspan="5" class="text-center">Pilih kategori untuk melihat data</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Sales Section -->
+        <div class="user-sales-section" id="userSalesSection" style="display: none;">
+            <div class="section-header">
+                <h1>Performa Operator</h1>
+                <p>Analisis kinerja penjualan setiap operator kasir</p>
+            </div>
+            
+            <div class="user-sales-content">
+                <!-- Controls -->
+                <div class="controls-row">
+                    <div class="date-controls">
+                        <label>Periode:</label>
+                        <input type="date" id="userSalesStartDate" class="date-input">
+                        <span>-</span>
+                        <input type="date" id="userSalesEndDate" class="date-input">
+                        <button id="applyUserSalesFilter" class="apply-btn">Terapkan</button>
+                    </div>
+                </div>
+                
+                <!-- Chart and Table Layout -->
+                <div class="user-sales-grid">
+                    <!-- Bar Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Total Penjualan per Operator</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="userSalesChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Table -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>Detail Performa Operator</h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="userSalesTable" class="data-table sortable-table">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-column="operator" data-type="text">
+                                            Operator <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="total_sales" data-type="number">
+                                            Total Penjualan <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="total_transactions" data-type="number">
+                                            Jumlah Transaksi <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-column="avg_transaction" data-type="number">
+                                            Rata-rata per Transaksi <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="4" class="text-center">Memuat data...</td>
                                     </tr>
                                 </tbody>
                             </table>

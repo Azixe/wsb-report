@@ -108,8 +108,13 @@ function initSidebar() {
                 sidebarOpen = false;
             }
             
-            // You can add navigation logic here
-            // Navigation logic can be added here in the future
+            // Handle navigation
+            const href = item.getAttribute('href');
+            if (href === '#overview') {
+                showOverviewSection();
+            } else if (href === '#user-sales') {
+                showUserSalesSection();
+            }
         });
     });
     
@@ -601,6 +606,234 @@ function animateElements() {
             table.classList.add('fade-in');
         }, 500 + index * 200);
     });
+}
+
+// Navigation Functions
+function showOverviewSection() {
+    // Hide all sections
+    const userSalesSection = document.getElementById('userSalesSection');
+    const dashboardContent = document.querySelector('.dashboard-content');
+    
+    if (userSalesSection) userSalesSection.style.display = 'none';
+    if (dashboardContent) dashboardContent.style.display = 'block';
+}
+
+function showUserSalesSection() {
+    // Hide all sections
+    const userSalesSection = document.getElementById('userSalesSection');
+    const dashboardContent = document.querySelector('.dashboard-content');
+    
+    if (dashboardContent) dashboardContent.style.display = 'none';
+    if (userSalesSection) {
+        userSalesSection.style.display = 'block';
+        
+        // Initialize user sales if not already done
+        if (!chartInstances.userSalesChart) {
+            initUserSalesSection();
+        }
+        
+        // Load data
+        loadUserSalesData();
+    }
+}
+
+// User Sales Functions
+function initUserSalesSection() {
+    // Initialize date range controls
+    initUserSalesDateRange();
+    
+    // Initialize chart
+    initUserSalesChart();
+    
+    console.log('User Sales section initialized');
+}
+
+function initUserSalesDateRange() {
+    const startDateInput = document.getElementById('userSalesStartDate');
+    const endDateInput = document.getElementById('userSalesEndDate');
+    const applyBtn = document.getElementById('applyUserSalesFilter');
+    
+    if (startDateInput && endDateInput && applyBtn) {
+        // Set default date range (last 30 days)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30);
+        
+        startDateInput.value = startDate.toISOString().split('T')[0];
+        endDateInput.value = endDate.toISOString().split('T')[0];
+        
+        // Add event listener for apply button
+        applyBtn.addEventListener('click', function() {
+            const start = startDateInput.value;
+            const end = endDateInput.value;
+            
+            if (!start || !end) {
+                showNotification('Pilih tanggal mulai dan selesai', 'warning');
+                return;
+            }
+            
+            if (new Date(start) > new Date(end)) {
+                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
+                return;
+            }
+            
+            loadUserSalesData(start, end);
+            showNotification(`Memuat data performa operator dari ${start} sampai ${end}`, 'info');
+        });
+        
+        // Add enter key support
+        [startDateInput, endDateInput].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyBtn.click();
+                }
+            });
+        });
+    }
+}
+
+function initUserSalesChart() {
+    const userSalesCtx = document.getElementById('userSalesChart');
+    if (userSalesCtx) {
+        chartInstances.userSalesChart = new Chart(userSalesCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Total Penjualan',
+                    data: [],
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+                        '#9b59b6', '#1abc9c', '#34495e', '#e67e22'
+                    ],
+                    borderColor: [
+                        '#2980b9', '#c0392b', '#27ae60', '#d68910', 
+                        '#8e44ad', '#16a085', '#2c3e50', '#d35400'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Total Penjualan: ' + formatCurrency(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Total Penjualan (Rp)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Operator'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+async function loadUserSalesData(startDate = null, endDate = null) {
+    try {
+        console.log('Loading user sales data...');
+        showNotification('Memuat data performa operator...', 'info');
+
+        const params = {};
+        if (startDate && endDate) {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        }
+        
+        const data = await fetchAPI('user-sales', params);
+        
+        if (data && data.users && Array.isArray(data.users)) {
+            console.log('Received user sales data:', data);
+            updateUserSalesChart(data.users);
+            updateUserSalesTable(data.users);
+            showNotification('Data performa operator berhasil dimuat!', 'success');
+        } else {
+            console.log('No valid user sales data received');
+            showNotification('Tidak ada data performa operator untuk periode ini', 'warning');
+        }
+    } catch (error) {
+        console.error('Error loading user sales data:', error);
+        showNotification('Gagal memuat data performa operator', 'error');
+    }
+}
+
+function updateUserSalesChart(users) {
+    const chart = chartInstances.userSalesChart;
+    if (!chart || !users || users.length === 0) {
+        console.log('No chart instance or no user data to update');
+        return;
+    }
+    
+    // Extract data for chart
+    const labels = users.map(user => user.operator);
+    const data = users.map(user => parseFloat(user.total_sales) || 0);
+    
+    // Update chart data
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    
+    chart.update('active');
+    
+    console.log('User sales chart updated with data:', { labels, data });
+}
+
+function updateUserSalesTable(users) {
+    const tableBody = document.querySelector('#userSalesTable tbody');
+    if (!tableBody || !users || users.length === 0) {
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
+        }
+        return;
+    }
+    
+    // Clear existing rows
+    tableBody.innerHTML = '';
+    
+    // Add new rows
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.operator}</td>
+            <td>${formatCurrency(user.total_sales)}</td>
+            <td>${formatNumber(user.total_transactions)}</td>
+            <td>${formatCurrency(user.avg_transaction)}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+    
+    console.log('User sales table updated with', users.length, 'rows');
 }
 
 // Utility function for debouncing

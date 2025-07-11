@@ -1041,7 +1041,131 @@ canvas {
   color: #64748b;
 }
 
-/* ===== UPDATED STATS GRID ===== */
+/* ===== USER SALES SECTION ===== */
+.user-sales-section {
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.section-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.section-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em;
+}
+
+.section-header p {
+  font-size: 1.125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.user-sales-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.controls-row {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.date-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.date-controls label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.user-sales-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.user-sales-grid .chart-container,
+.user-sales-grid .table-container {
+  height: 600px;
+  min-height: 600px;
+}
+
+.user-sales-grid .chart-wrapper {
+  height: 480px;
+  min-height: 480px;
+}
+
+.user-sales-grid .chart-wrapper canvas {
+  width: 100% !important;
+  height: 450px !important;
+  max-height: 450px !important;
+  min-height: 450px !important;
+}
+
+/* ===== RESPONSIVE FOR USER SALES ===== */
+@media (max-width: 992px) {
+  .user-sales-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .user-sales-section {
+    padding: 1rem;
+  }
+  
+  .section-header h1 {
+    font-size: 2rem;
+  }
+  
+  .date-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-sales-grid .chart-container,
+  .user-sales-grid .table-container {
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .user-sales-grid .chart-wrapper {
+    height: 300px;
+    min-height: 300px;
+  }
+  
+  .user-sales-grid .chart-wrapper canvas {
+    height: 280px !important;
+    max-height: 280px !important;
+    min-height: 280px !important;
+  }
+  
+  .section-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .section-header p {
+    font-size: 1rem;
+  }
+}
 
 /* ===== PREMIUM ANIMATIONS & EFFECTS ===== */
 @keyframes fadeIn {
