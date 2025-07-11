@@ -60,62 +60,6 @@ async function executeQuery(query, params = []) {
 
 // API Routes
 
-// Stats endpoint
-app.get('/api/stats', async (req, res) => {
-    try {
-        // Total revenue (last 30 days)
-        const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
-
-        const revenueQuery = `
-            SELECT SUM(grand_total) as total_revenue 
-            FROM penjualan_fix 
-            WHERE tgl_jual >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        `;
-        const revenueResult = await executeQuery(revenueQuery);
-        const revenue = revenueResult[0]?.total_revenue || 0;
-        
-        // Total products
-        const productQuery = "SELECT COUNT(*) as total_products FROM produk";
-        const productResult = await executeQuery(productQuery);
-        const totalProducts = productResult[0]?.total_products || 0;
-        
-        // Today's orders
-        const ordersQuery = `
-            SELECT COUNT(*) as today_orders 
-            FROM penjualan_fix 
-            WHERE DATE(tgl_jual) = CURDATE()
-        `;
-        const ordersResult = await executeQuery(ordersQuery);
-        const todayOrders = ordersResult[0]?.today_orders || 0;
-        
-        // Low stock items
-        const lowStockQuery = `
-            SELECT COUNT(*) as low_stock 
-            FROM produk 
-            WHERE (stok_toko + stok_gudang) < stok_minimal AND stok_minimal > 0
-        `;
-        const lowStockResult = await executeQuery(lowStockQuery);
-        const lowStock = lowStockResult[0]?.low_stock || 0;
-        
-        res.json({
-            revenue: parseFloat(revenue),
-            products: parseInt(totalProducts),
-            orders: parseInt(todayOrders),
-            low_stock: parseInt(lowStock)
-        });
-    } catch (error) {
-        console.error('Stats API error:', error);
-        // Fallback data
-        res.json({
-            revenue: 125450000,
-            products: 1247,
-            orders: 324,
-            low_stock: 42
-        });
-    }
-});
-
 // Revenue & Profit endpoint
 app.get('/api/revenue-profit', async (req, res) => {
     try {

@@ -594,14 +594,6 @@ function startRealTimeUpdates() {
 }
 
 function animateElements() {
-    // Animate stats cards
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach((card, index) => {
-        setTimeout(() => {
-            card.classList.add('fade-in');
-        }, index * 100);
-    });
-    
     // Animate tables
     const tableContainers = document.querySelectorAll('.table-container');
     tableContainers.forEach((table, index) => {
@@ -684,30 +676,6 @@ function updateStatsCards(stats) {
         const revenueElement = revenueCard.querySelector('h3');
         if (revenueElement) {
             revenueElement.textContent = formatCurrency(stats?.total_revenue || 0);
-        }
-    }
-    
-    // Update other stat cards
-    const statCards = document.querySelectorAll('.stats-grid .stat-card');
-    
-    if (statCards[0]) {
-        const productsElement = statCards[0].querySelector('h3');
-        if (productsElement) {
-            productsElement.textContent = stats?.total_products || 0;
-        }
-    }
-    
-    if (statCards[1]) {
-        const ordersElement = statCards[1].querySelector('h3');
-        if (ordersElement) {
-            ordersElement.textContent = stats?.today_orders || 0;
-        }
-    }
-    
-    if (statCards[2]) {
-        const lowStockElement = statCards[2].querySelector('h3');
-        if (lowStockElement) {
-            lowStockElement.textContent = stats?.low_stock || 0;
         }
     }
 }
