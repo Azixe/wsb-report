@@ -436,10 +436,9 @@ app.get('/api/user-sales', async (req, res) => {
         // Query untuk mendapatkan total penjualan per operator
         const userSalesQuery = `
             SELECT 
-                pf.operator as user,
+                pf.operator,
                 COUNT(DISTINCT pf.no_faktur_jual) as total_transactions,
-                SUM(pd.total) as total_sales,
-                AVG(pd.total) as avg_transaction_value
+                SUM(pd.total) as total_sales
             FROM penjualan_fix pf
             LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
             WHERE pf.tgl_jual BETWEEN ? AND ?
@@ -450,25 +449,13 @@ app.get('/api/user-sales', async (req, res) => {
             ORDER BY total_sales DESC
         `;
         
-        let userSalesResults = await executeQuery(userSalesQuery, [startDate, endDate]);
-        
-        // Jika tidak ada data, buat fallback data
-        if (!userSalesResults || userSalesResults.length === 0) {
-            console.log('⚠️  No user sales data found, using fallback');
-            userSalesResults = [
-                { operator: 'Admin', total_transactions: 150, total_sales: 25000000, avg_transaction_value: 166667 },
-                { operator: 'Kasir1', total_transactions: 120, total_sales: 18000000, avg_transaction_value: 150000 },
-                { operator: 'Kasir2', total_transactions: 95, total_sales: 14500000, avg_transaction_value: 152632 },
-                { operator: 'Manager', total_transactions: 75, total_sales: 12000000, avg_transaction_value: 160000 }
-            ];
-        }
+        const userSalesResults = await executeQuery(userSalesQuery, [startDate, endDate]);
         
         // Format data untuk response
         const formattedData = userSalesResults.map(row => ({
             operator: row.operator,
             total_sales: parseFloat(row.total_sales) || 0,
-            total_transactions: parseInt(row.total_transactions) || 0,
-            avg_transaction: parseFloat(row.avg_transaction_value) || 0
+            total_transactions: parseInt(row.total_transactions) || 0
         }));
         
         console.log(`✅ Found ${formattedData.length} operators with sales data`);
@@ -488,23 +475,8 @@ app.get('/api/user-sales', async (req, res) => {
         
     } catch (error) {
         console.error('User sales API error:', error);
-        
-        // Fallback data pada error
-        const fallbackData = [
-            { operator: 'Admin', total_sales: 25000000, total_transactions: 150, avg_transaction: 166667 },
-            { operator: 'Kasir1', total_sales: 18000000, total_transactions: 120, avg_transaction: 150000 },
-            { operator: 'Kasir2', total_sales: 14500000, total_transactions: 95, avg_transaction: 152632 },
-            { operator: 'Manager', total_sales: 12000000, total_transactions: 75, avg_transaction: 160000 }
-        ];
-        
-        res.json({
-            users: fallbackData,
-            error: 'Using fallback data: ' + error.message,
-            summary: {
-                total_operators: fallbackData.length,
-                total_sales: fallbackData.reduce((sum, user) => sum + user.total_sales, 0),
-                total_transactions: fallbackData.reduce((sum, user) => sum + user.total_transactions, 0)
-            }
+        res.status(500).json({
+            error: 'Failed to load user sales data: ' + error.message
         });
     }
 });

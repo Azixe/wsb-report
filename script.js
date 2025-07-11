@@ -813,7 +813,7 @@ function updateUserSalesTable(users) {
     const tableBody = document.querySelector('#userSalesTable tbody');
     if (!tableBody || !users || users.length === 0) {
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
         }
         return;
     }
@@ -828,7 +828,6 @@ function updateUserSalesTable(users) {
             <td>${user.operator}</td>
             <td>${formatCurrency(user.total_sales)}</td>
             <td>${formatNumber(user.total_transactions)}</td>
-            <td>${formatCurrency(user.avg_transaction)}</td>
         `;
         tableBody.appendChild(row);
     });
