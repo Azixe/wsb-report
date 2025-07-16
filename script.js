@@ -644,6 +644,7 @@ function initUserSalesSection() {
     
     // Initialize chart
     initUserSalesChart();
+    loadUser();
     
     console.log('User Sales section initialized');
 }
@@ -652,8 +653,10 @@ function initUserSalesDateRange() {
     const startDateInput = document.getElementById('userSalesStartDate');
     const endDateInput = document.getElementById('userSalesEndDate');
     const applyBtn = document.getElementById('applyUserSalesFilter');
+    const applyBtnOperator = document.getElementById('applyUserFilter');
+    const userSelect = document.getElementById('userSelect');
     
-    if (startDateInput && endDateInput && applyBtn) {
+    if (startDateInput && endDateInput && applyBtn && applyBtnOperator) {
         // Set default date range (last 30 days)
         const endDate = new Date();
         const startDate = new Date();
@@ -679,6 +682,20 @@ function initUserSalesDateRange() {
             
             loadUserSalesData(start, end);
             showNotification(`Memuat data performa operator dari ${start} sampai ${end}`, 'info');
+        });
+
+        applyBtnOperator.addEventListener('click', function() {
+            const start = startDateInput.value;
+            const end = endDateInput.value;
+            const operatorUser = userSelect.value;
+
+            if (!operatorUser) {
+                showNotification('Pilih operator terlebih dahulu', 'warning');
+                return;
+            }
+
+            loadUserSalesDataIndividual(start, end, operatorUser);
+            showNotification(`memuat data performa operator: ${operatorUser}`, 'info');
         });
         
         // Add enter key support
@@ -761,6 +778,27 @@ function initUserSalesChart() {
     }
 }
 
+async function loadUser() {
+    try {
+        const data = await fetchAPI('users');
+        
+        if (userSelect && data && Array.isArray(data)) {
+            // Clear existing options except the first one
+            userSelect.innerHTML = '<option value="">Pilih Operator...</option>';
+            
+            data.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.operator;
+                option.textContent = user.operator;
+                userSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        showNotification('Gagal memuat data kategori', 'error');
+    }
+}
+
 async function loadUserSalesData(startDate = null, endDate = null) {
     try {
         console.log('Loading user sales data...');
@@ -778,6 +816,39 @@ async function loadUserSalesData(startDate = null, endDate = null) {
             console.log('Received user sales data:', data);
             updateUserSalesChart(data.users);
             updateUserSalesTable(data.users);
+            showNotification('Data performa operator berhasil dimuat!', 'success');
+        } else {
+            console.log('No valid user sales data received');
+            showNotification('Tidak ada data performa operator untuk periode ini', 'warning');
+        }
+
+    } catch (error) {
+        console.error('Error loading user sales data:', error);
+        showNotification('Gagal memuat data performa operator', 'error');
+    }
+}
+
+async function loadUserSalesDataIndividual(startDate = null, endDate = null, operatorUser = null) {
+    if (!operatorUser) {
+            showNotification('Pilih operator terlebih dahulu', 'warning');
+            return;
+        }
+
+    try {
+        console.log('Loading user sales data...');
+        showNotification('Memuat data performa operator...', 'info');
+
+        const params = {
+            operator: operatorUser,
+            start_date: startDate,
+            end_date: endDate
+        };
+        
+        const data = await fetchAPI('user-individual-sales', params);
+
+        if (data && data.operatorIndividually && Array.isArray(data.operatorIndividually)) {
+            console.log('Received user sales data:', data);
+            updateUserIndividualSalesTable(data.operatorIndividually);
             showNotification('Data performa operator berhasil dimuat!', 'success');
         } else {
             console.log('No valid user sales data received');
@@ -833,6 +904,32 @@ function updateUserSalesTable(users) {
     });
     
     console.log('User sales table updated with', users.length, 'rows');
+}
+
+function updateUserIndividualSalesTable(operatorIndividually) {
+    const tableBody = document.querySelector('#userTableDetail tbody');
+    if (!tableBody || !operatorIndividually || operatorIndividually.length === 0) {
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
+        }
+        return;
+    }
+    
+    // Clear existing rows
+    tableBody.innerHTML = '';
+    
+    // Add new rows
+    operatorIndividually.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.nama_produk}</td>
+            <td>${formatNumber(user.total_transactions)}</td>
+            <td>${formatCurrency(user.total_sales)}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+    
+    console.log('User sales table updated with', operatorIndividually.length, 'rows');
 }
 
 // Utility function for debouncing

@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
+const { start } = require('repl');
 
 const app = express();
 const PORT = 3002;
@@ -478,6 +479,69 @@ app.get('/api/user-sales', async (req, res) => {
         res.status(500).json({
             error: 'Failed to load user sales data: ' + error.message
         });
+    }
+});
+
+app.get('/api/user-individual-sales', async (req, res) => {
+    try {
+        const operator1 = req.query.operator;
+        const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        
+        console.log(`📊 Loading user sales data from ${startDate} to ${endDate}`);
+
+        let formattedData1 = [];
+
+        if (operator1) {
+            const userSaleQuery = `
+            SELECT 
+                pd.nama_produk,
+                COUNT(DISTINCT pf.no_faktur_jual) as total_transactions,
+                SUM(pd.total) as total_sales
+            FROM penjualan_fix pf
+            LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+            WHERE pf.operator = ? 
+            AND pf.tgl_jual BETWEEN ? AND ?
+            AND pd.total > 0
+            GROUP BY pd.kd_produk
+            ORDER BY total_sales DESC
+        `;
+
+        let userSaleQueryResults = await executeQuery(userSaleQuery, [operator1, startDate, endDate]);
+        
+        console.log(`✅ Found ${formattedData1.length} operators with sales data`);
+        
+        res.json({
+            operator_1 : operator1,
+            operatorIndividually: userSaleQueryResults,
+            date_range: {
+                start: startDate,
+                end: endDate
+            }
+        });
+    }
+    } catch (error) {
+        console.error('User sales API error:', error);
+        res.status(500).json({
+            error: 'Failed to load user sales data: ' + error.message
+        });
+    }
+});
+
+app.get('/api/users', async (req, res) => {
+    try {
+        // Try to get user from penjualan_fix table first
+        let query = 'SELECT DISTINCT operator FROM penjualan_fix ORDER BY operator';
+        let results = await executeQuery(query);
+        
+        console.log('User found:', results.length);
+        res.json(results);
+    } catch (error) {
+        console.error('Users API error:', error);
+        // Fallback data
+        res.json([
+            { operators: 'Users'}
+        ]);
     }
 });
 
