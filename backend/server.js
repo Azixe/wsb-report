@@ -503,7 +503,7 @@ app.get('/api/user-individual-sales', async (req, res) => {
             WHERE pf.operator = ? 
             AND pf.tgl_jual BETWEEN ? AND ?
             AND pd.total > 0
-            GROUP BY pd.kd_produk
+            GROUP BY pd.kd_produk, pd.nama_produk
             ORDER BY total_sales DESC
         `;
 
