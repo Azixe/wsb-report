@@ -70,13 +70,59 @@
         <div class="dashboard-content">
             <!-- Total Revenue Card - Full Width -->
             <div class="revenue-section">
-                <div class="stat-card revenue-card">
-                    <div class="stat-icon revenue">
-                        <i class="fas fa-dollar-sign"></i>
+                <div class="revenue-cards-row">
+                    <!-- Omset Card -->
+                    <div class="modern-revenue-card">
+                        <div class="revenue-header">
+                            <h3>Omset</h3>
+                        </div>
+                        <div class="revenue-main">
+                            <div class="revenue-amount">
+                                <span class="currency">Rp</span>
+                                <span class="amount" id="totalRevenueAmount">0</span>
+                            </div>
+                            <div class="revenue-period" id="revenuePeriod">Today</div>
+                        </div>
+                        <div class="revenue-chart-section">
+                            <div class="chart-header-mini">
+                                <span class="chart-title">Sales volume</span>
+                                <div class="chart-legend">
+                                    <span class="legend-item current">
+                                        <span class="legend-dot current"></span>this month
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mini-chart-container">
+                                <canvas id="miniRevenueChart" width="300" height="120"></canvas>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-info">
-                        <h3>Rp 0</h3>
-                        <p>Total Pendapatan</p>
+
+                    <!-- Laba Card -->
+                    <div class="modern-revenue-card profit-card">
+                        <div class="revenue-header">
+                            <h3>Laba</h3>
+                        </div>
+                        <div class="revenue-main">
+                            <div class="revenue-amount">
+                                <span class="currency">Rp</span>
+                                <span class="amount" id="totalProfitAmount">0</span>
+                            </div>
+                            <div class="revenue-period" id="profitPeriod">Today</div>
+                        </div>
+                        <div class="revenue-chart-section">
+                            <div class="chart-header-mini">
+                                <span class="chart-title">Profit volume</span>
+                                <div class="chart-legend">
+                                    <span class="legend-item current">
+                                        <span class="legend-dot current2"></span>this month
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mini-chart-container">
+                                <canvas id="miniProfitChart" width="300" height="120"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

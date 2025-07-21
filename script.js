@@ -233,6 +233,132 @@ function initCharts() {
         loadRevenueProfitData();
     }
     
+    // Mini Revenue Chart for the modern revenue card
+    const miniRevenueCtx = document.getElementById('miniRevenueChart');
+    if (miniRevenueCtx) {
+        chartInstances.miniRevenueChart = new Chart(miniRevenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'This Month',
+                        data: [],
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': Rp ' + 
+                                       new Intl.NumberFormat('id-ID').format(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        display: false,
+                        beginAtZero: true
+                    },
+                    x: {
+                        display: false
+                    }
+                },
+                elements: {
+                    point: {
+                        backgroundColor: 'white',
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+        
+        // Mini chart will be loaded automatically when loadRevenueProfitData() is called
+    }
+    
+    // Mini Profit Chart for the modern profit card
+    const miniProfitCtx = document.getElementById('miniProfitChart');
+    if (miniProfitCtx) {
+        chartInstances.miniProfitChart = new Chart(miniProfitCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'This Month',
+                        data: [],
+                        borderColor: '#fbbf24ff',
+                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': Rp ' + 
+                                       new Intl.NumberFormat('id-ID').format(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        display: false,
+                        beginAtZero: true
+                    },
+                    x: {
+                        display: false
+                    }
+                },
+                elements: {
+                    point: {
+                        backgroundColor: 'white',
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+        
+        // Mini profit chart will be loaded automatically when loadRevenueProfitData() is called
+    }
+    
     // Category Sales Chart
     const categorySalesCtx = document.getElementById('categorySalesChart');
     if (categorySalesCtx) {
@@ -964,6 +1090,128 @@ function formatNumber(number) {
     return new Intl.NumberFormat('id-ID').format(number);
 }
 
+// Load data for mini revenue chart
+async function loadMiniRevenueChart(startDate = null, endDate = null) {
+    try {
+        // Use same date logic as revenue profit data
+        if (!startDate || !endDate) {
+            const defaultEndDate = new Date();
+            const defaultStartDate = new Date();
+            defaultStartDate.setDate(defaultEndDate.getDate() - 30);
+            
+            startDate = defaultStartDate.toISOString().split('T')[0];
+            endDate = defaultEndDate.toISOString().split('T')[0];
+        }
+
+        const params = {
+            start_date: startDate,
+            end_date: endDate
+        };
+
+        // Fetch actual revenue data
+        const stats = await fetchAPI('revenue-profit', params);
+        
+        if (stats && stats.labels && stats.omset) {
+            const chart = chartInstances.miniRevenueChart;
+            if (chart) {
+                // Use actual monthly data
+                const currentData = stats.omset || [];
+
+                // Use month labels for mini chart
+                const labels = stats.labels.map(label => {
+                    // Convert '2025-01' format to just month number or short name
+                    const month = label.split('-')[1];
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return monthNames[parseInt(month) - 1] || month;
+                });
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = currentData;
+                chart.update('none');
+                
+                console.log('Mini revenue chart updated with real data:', {
+                    labels: labels,
+                    currentData: currentData
+                });
+            }
+        } else {
+            console.log('No data available for mini revenue chart');
+        }
+    } catch (error) {
+        console.error('Error loading mini revenue chart:', error);
+        
+        // Fallback to empty chart
+        const chart = chartInstances.miniRevenueChart;
+        if (chart) {
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.update('none');
+        }
+    }
+}
+
+// Load data for mini profit chart
+async function loadMiniProfitChart(startDate = null, endDate = null) {
+    try {
+        // Use same date logic as revenue profit data
+        if (!startDate || !endDate) {
+            const defaultEndDate = new Date();
+            const defaultStartDate = new Date();
+            defaultStartDate.setDate(defaultEndDate.getDate() - 30);
+            
+            startDate = defaultStartDate.toISOString().split('T')[0];
+            endDate = defaultEndDate.toISOString().split('T')[0];
+        }
+
+        const params = {
+            start_date: startDate,
+            end_date: endDate
+        };
+
+        // Fetch actual profit data
+        const stats = await fetchAPI('revenue-profit', params);
+        
+        if (stats && stats.labels && stats.laba) {
+            const chart = chartInstances.miniProfitChart;
+            if (chart) {
+                // Use actual monthly profit data
+                const currentData = stats.laba || [];
+
+                // Use month labels for mini chart
+                const labels = stats.labels.map(label => {
+                    // Convert '2025-01' format to just month number or short name
+                    const month = label.split('-')[1];
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return monthNames[parseInt(month) - 1] || month;
+                });
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = currentData;
+                chart.update('none');
+                
+                console.log('Mini profit chart updated with real data:', {
+                    labels: labels,
+                    currentData: currentData
+                });
+            }
+        } else {
+            console.log('No data available for mini profit chart');
+        }
+    } catch (error) {
+        console.error('Error loading mini profit chart:', error);
+        
+        // Fallback to empty chart
+        const chart = chartInstances.miniProfitChart;
+        if (chart) {
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.update('none');
+        }
+    }
+}
+
 // Functions to load and handle dashboard data
 async function loadDashboardData(startDate = null, endDate = null) {
     try {
@@ -999,7 +1247,25 @@ async function loadDashboardData(startDate = null, endDate = null) {
 function updateStatsCards(stats) {
     console.log('Updating stats cards with:', stats);
     
-    // Update revenue card (separate element)
+    // Update modern revenue card
+    const totalRevenueAmount = document.getElementById('totalRevenueAmount');
+    const totalProfitAmount = document.getElementById('totalProfitAmount');
+    
+    if (totalRevenueAmount) {
+        const revenue = stats?.total_revenue || 0;
+        totalRevenueAmount.textContent = formatNumberShort(revenue);
+    }
+    
+    if (totalProfitAmount) {
+        // Calculate total profit from the data
+        let totalProfit = 0;
+        if (stats?.laba && Array.isArray(stats.laba)) {
+            totalProfit = stats.laba.reduce((sum, profit) => sum + (parseFloat(profit) || 0), 0);
+        }
+        totalProfitAmount.textContent = formatNumberShort(totalProfit);
+    }
+    
+    // Update legacy revenue card if it still exists
     const revenueCard = document.querySelector('.revenue-card');
     if (revenueCard) {
         const revenueElement = revenueCard.querySelector('h3');
@@ -1007,6 +1273,56 @@ function updateStatsCards(stats) {
             revenueElement.textContent = formatCurrency(stats?.total_revenue || 0);
         }
     }
+}
+
+// Helper function to format numbers in Indonesian short form (1.254K, 1.531jt, 3.531M, etc.)
+function formatNumberShort(number) {
+    if (number >= 1000000000) {
+        return (number / 1000000000).toFixed(3) + 'M'; // Milyar
+    } else if (number >= 1000000) {
+        return (number / 1000000).toFixed(3) + 'jt'; // Juta
+    } else if (number >= 1000) {
+        return (number / 1000).toFixed(3) + 'K'; // Ribu
+    } else {
+        return number.toString();
+    }
+}
+
+// Update revenue period based on selected date range
+function updateRevenuePeriod(startDate, endDate) {
+    const revenuePeriodElement = document.getElementById('revenuePeriod');
+    const profitPeriodElement = document.getElementById('profitPeriod');
+    
+    if (!startDate || !endDate) {
+        if (revenuePeriodElement) revenuePeriodElement.textContent = 'Today';
+        if (profitPeriodElement) profitPeriodElement.textContent = 'Today';
+        return;
+    }
+    
+    // Format dates for display
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    let periodText;
+    
+    // Check if it's the same day
+    if (startDate === endDate) {
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        periodText = start.toLocaleDateString('id-ID', options);
+    } else {
+        // Different dates - show range
+        const startOptions = { day: 'numeric', month: 'short' };
+        const endOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+        
+        const startFormatted = start.toLocaleDateString('id-ID', startOptions);
+        const endFormatted = end.toLocaleDateString('id-ID', endOptions);
+        
+        periodText = `${startFormatted} - ${endFormatted}`;
+    }
+    
+    // Update both revenue and profit period
+    if (revenuePeriodElement) revenuePeriodElement.textContent = periodText;
+    if (profitPeriodElement) profitPeriodElement.textContent = periodText;
 }
 
 function initDateRange() {
@@ -1022,6 +1338,9 @@ function initDateRange() {
         
         startDateInput.value = startDate.toISOString().split('T')[0];
         endDateInput.value = endDate.toISOString().split('T')[0];
+        
+        // Set initial revenue period
+        updateRevenuePeriod(startDateInput.value, endDateInput.value);
         
         // Add event listener for apply button
         applyBtn.addEventListener('click', function() {
@@ -1041,6 +1360,7 @@ function initDateRange() {
             loadDashboardData(start, end);
             loadRevenueProfitData(start, end);
             loadRevenueProfitDataTabels(start, end);
+            updateRevenuePeriod(start, end);
             showNotification(`Memuat data dari ${start} sampai ${end}`, 'info');
         });
         
@@ -1317,6 +1637,10 @@ async function loadRevenueProfitData(startDate = null, endDate = null) {
         if (data && (data.labels || Array.isArray(data))) {
             console.log('Received revenue profit data:', data);
             updateRevenueProfitChart(data);
+            
+            // Also update the mini charts with the same date range
+            await loadMiniRevenueChart(startDate, endDate);
+            await loadMiniProfitChart(startDate, endDate);
         } else {
             console.log('No valid revenue profit data received, using fallback');
             // You can add fallback data here if needed
