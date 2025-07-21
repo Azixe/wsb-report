@@ -2,26 +2,37 @@
 
 Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript yang terhubung ke database MySQL.
 
-## 🚀 Fitur
+##  Fitur
 
-- **� Sistem Login** dengan autentikasi database (MD5 hash)
-- **� Revenue Card Premium** dengan row terpisah untuk nominal besar
-- **� Chart Omset & Laba** dengan filter rentang tanggal real-time
-- **📱 Layout Responsif** - Chart dan tabel side-by-side di desktop, stack di mobile
-- **🗄️ Database Integration** dengan MySQL untuk data real-time
-- **🎨 Modern UI/UX** dengan CSS modular dan design yang clean
-- **⚡ Real-time Updates** dari backend Express.js
+- **Dashboard Analytics** dengan revenue, profit, dan kategori sales
+- **Performa Operator** - Analisis kinerja operator dengan chart dan tabel
+- **Category Sales Analysis** - Top 5 kategori dengan breakdown produk
+- **Revenue & Profit Tracking** dengan filter rentang tanggal
+- **Layout Responsif** - Optimized untuk desktop dan mobile
+- **Database Integration** dengan MySQL untuk data real-time
+- **Modern UI/UX** dengan CSS Grid dan design yang clean
+- **Real-time Data Loading** dari backend Express.js APIDashboard
 
-## 🛠️ Setup & Installation
+Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript yang terhubung ke database MySQL.
+
+##  Prerequisites & Setup
 
 ### Prerequisites
-- Node.js (versi 14 atau lebih baru)
-- MySQL Server
-- Database `toko` (sesuai dengan struktur yang ada)
+- **Node.js** (versi 16 atau lebih baru)
+- **MySQL Server** (versi 5.7 atau lebih baru)
+- **Database `toko`** dengan struktur tabel yang sesuai:
+  - `penjualan_fix` - Header transaksi penjualan
+  - `penjualan_det` - Detail item per transaksi
+  - `pecah_stok` - Master produk dengan kategori
+  - `produk` - Data stok produk
 
-### Langkah-langkah Installation
+### Installation & Running
 
-1. **Clone atau download project ini**
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/Azixe/wsb-report.git
+   cd wsb-report
+   ```
 
 2. **Setup Backend**
    ```bash
@@ -30,279 +41,154 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
    ```
 
 3. **Konfigurasi Database**
-   - Pastikan MySQL server berjalan
-   - Database `toko` sudah tersedia dengan struktur sesuai dokumentasi
+   - Pastikan MySQL server berjalan di port 3306
+   - Database `toko` sudah tersedia dengan struktur sesuai
    - Update konfigurasi di `backend/server.js` jika diperlukan:
      ```javascript
      const dbConfig = {
          host: 'localhost',
          port: 3306,
          user: 'root',
-         password: '', // Ganti dengan password MySQL Anda
+         password: '', // Sesuaikan dengan password MySQL Anda
          database: 'toko'
      };
      ```
 
-4. **Jalankan server**
+4. **Jalankan Backend Server**
    ```bash
    cd backend
-   npm start
-   ```
-   
-   Atau untuk development mode dengan auto-reload:
-   ```bash
-   cd backend
-   npm run dev
+   node server.js
    ```
 
 5. **Akses Dashboard**
    - Dashboard: http://localhost:3002
-   - API: http://localhost:3002/api
-   - Login dengan credential yang tersedia di database
+   - API Endpoints: http://localhost:3002/api
 
 
-## 📡 API Endpoints
+##  API Endpoints
 
 Server Express.js menyediakan endpoint berikut:
 
-| Endpoint | Deskripsi |
-|----------|-----------|
-| `POST /api/auth/login` | Autentikasi login dengan username/password |
-| `GET /api/stats` | Statistik umum (revenue, produk, order, stok menipis) |
-| `GET /api/revenue-profit` | Data omset & laba dengan filter tanggal |
+| Endpoint | Method | Deskripsi |
+|----------|---------|-----------|
+| `/api/revenue-profit` | GET | Data omset & laba dengan filter tanggal |
+| `/api/categories` | GET | Daftar kategori produk |
+| `/api/category-sales` | GET | Detail penjualan per kategori |
+| `/api/category-sales-summary` | GET | Summary penjualan semua kategori (top 5) |
+| `/api/user-sales` | GET | Performa penjualan per operator |
+| `/api/user-individual-sales` | GET | Detail penjualan operator individual |
+| `/api/users` | GET | Daftar operator/user |
+| `/api/daily-sales-trend` | GET | Trend penjualan harian |
+| `/api/weekly-sales-trend` | GET | Trend penjualan mingguan |
+| `/api/product/:productId` | GET | Detail produk dan analytics |
 
 ### Contoh penggunaan API:
 
-**Login:**
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "your_username",
-  "password": "your_password"
-}
-```
-
 **Revenue-Profit dengan filter tanggal:**
 ```
-GET /api/revenue-profit?start_date=2024-06-01&end_date=2024-06-30
+GET /api/revenue-profit?start_date=2025-01-01&end_date=2025-01-31
 ```
-## 💻 Tech Stack
 
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+**Category Sales Summary (Top 5):**
+```
+GET /api/category-sales-summary?start_date=2025-01-01&end_date=2025-01-31
+```
+
+**User Sales Performance:**
+```
+GET /api/user-sales?start_date=2025-01-01&end_date=2025-01-31
+```
+##  Tech Stack
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3 Grid
 - **Backend**: Node.js + Express.js  
 - **Database**: MySQL
 - **Charts**: Chart.js
-- **Authentication**: MD5 password hashing
-- **Icons**: Font Awesome
-- **Styling**: CSS Modular (base.css, login.css, dashboard-v2.css)
+- **Styling**: CSS Grid, Flexbox, Responsive Design
+- **Dependencies**: mysql2, cors, express
 
-## 🎨 Design Features
+##  Dashboard Features
 
-- **Responsive Layout**: Desktop sidebar + main content, mobile stack layout
-- **Premium Revenue Card**: Dedicated row dengan styling yang prominent
-- **Side-by-side Layout**: Chart dan tabel bersebelahan di desktop
-- **Modern CSS**: Gradients, shadows, hover effects
-- **Clean Typography**: Professional font hierarchy
+### Revenue & Profit Analytics
+- **Monthly Revenue Tracking**: Bar chart dengan data omset dan laba bulanan
+- **Date Range Filtering**: Filter data berdasarkan rentang tanggal
+- **Real-time Updates**: Data langsung dari database MySQL
 
-## Fitur Responsive
+### Category Sales Analysis  
+- **Top 5 Categories**: Pie chart kategori dengan penjualan tertinggi
+- **Product Breakdown**: Detail produk per kategori dengan omset dan laba
+- **Interactive Charts**: Chart yang responsive dan interactive
 
-- **Desktop**: Layout penuh dengan sidebar dan konten utama
-- **Tablet**: Adaptasi layout untuk layar medium
-- **Mobile**: Sidebar yang dapat diciutkan, layout stack vertikal
+### Operator Performance (User Sales)
+- **Sales Leaderboard**: Ranking operator berdasarkan total penjualan
+- **Individual Analysis**: Breakdown produk per operator
+- **Transaction Analytics**: Total transaksi dan nilai penjualan
 
-## 📊 Komponen Dashboard
+### Product Analytics
+- **Daily/Weekly Trends**: Analisis trend penjualan produk
+- **Stock Analytics**: Monitoring stok dan performa produk
+- **Detailed Reports**: Comprehensive product performance data
 
-### Revenue Section
-- **Total Pendapatan**: Card premium dengan row terpisah untuk nominal besar
-- **Typography besar**: Font 3rem untuk readability nominal milyaran
-- **White theme**: Styling konsisten dengan design system
+##  Responsive Design
 
-### Stats Grid  
-- **Total Produk**: Jumlah produk dari database
-- **Pesanan Hari Ini**: Transaksi hari ini dari `penjualan_fix`
-- **Stok Menipis**: Alert produk dengan stok < minimal
+- **Desktop**: Full sidebar layout dengan navigation dan content grid
+- **Tablet**: Responsive grid dengan adjusted spacing
+- **Mobile**: Stacked layout dengan collapsible navigation
 
-### Content Grid
-- **Chart Section**: Bar chart omset & laba dengan filter tanggal
-- **Table Section**: Data tabel omset/laba dengan scroll
-- **Responsive**: Side-by-side di desktop, stack di mobile
 
-### Login System
-- **Database Authentication**: Username/password dengan MD5 hash
-- **User Level Display**: Menampilkan level user (ADMIN, USER, etc.)
-- **Session Management**: LocalStorage untuk state management
+##  Database Schema
 
-## Customization
+Project ini menggunakan database MySQL dengan nama `toko` yang memiliki struktur untuk sistem POS/retail:
 
-### Mengubah Warna Tema
-Edit variabel CSS di file `css/base.css`:
-```css
-:root {
-    --primary-color: #3498db;
-    --secondary-color: #2ecc71;
-    --danger-color: #e74c3c;
-    --warning-color: #f39c12;
-}
-```
+### Tabel Utama:
+- **`penjualan_fix`**: Header transaksi penjualan (operator, tanggal, total)
+- **`penjualan_det`**: Detail item per transaksi (produk, qty, harga, laba)
+- **`pecah_stok`**: Master produk dengan kategori dan harga
+- **`produk`**: Data stok produk
+- **`kategori`**: Master kategori produk
 
-### Menambah Data
-Edit array data di file `script.js`:
-```javascript
-// Data untuk grafik penjualan
-const salesData = [12, 19, 15, 25, 22, 18, 20];
+### Query Analytics:
+- **Revenue & Profit**: JOIN `penjualan_fix` + `penjualan_det` untuk kalkulasi bulanan
+- **Category Sales**: JOIN `pecah_stok` + `penjualan_det` untuk breakdown kategori  
+- **User Performance**: GROUP BY operator dari `penjualan_fix` untuk analytics kinerja
+- **Product Analytics**: Aggregasi data penjualan per produk dengan stok
 
-// Data untuk kategori
-const categoryData = [35, 25, 20, 15, 5];
-```
-
-### Mengubah Bahasa
-Semua teks dapat diubah langsung di file HTML atau dengan membuat file konfigurasi bahasa.
-
-## Browser Support
-
-- Chrome 70+
-- Firefox 65+
-- Safari 12+
-- Edge 79+
-
-## Demo Features
-
-- **Real-time Updates**: Simulasi update data setiap 30 detik
-- **Interactive Charts**: Hover effects dan tooltips
-- **Responsive Tables**: Scroll horizontal untuk data yang banyak
-- **Loading States**: Animasi loading untuk better UX
-- **Error Handling**: Validasi form dan error messages
-
-## 🚀 Future Enhancements
-
-- [ ] **Export functionality**: PDF/Excel export untuk laporan
-- [ ] **More chart types**: Pie chart kategori, line chart trends  
-- [ ] **Advanced filters**: Filter by category, product, payment method
-- [ ] **Dark mode**: Theme switcher untuk user preference
-- [ ] **Real-time notifications**: WebSocket untuk update real-time
-- [ ] **Mobile app**: PWA conversion untuk mobile experience
-- [ ] **Multi-branch support**: Support untuk multiple cabang/toko
-- [ ] **Advanced analytics**: Forecasting, trend analysis, insights
-
-## Lisensi
-
-Project ini dibuat untuk keperluan edukasi dan demonstrasi.
-
-## Kontak
-
-Untuk pertanyaan atau saran, silakan buat issue di repository ini.
-
-## 🎯 Cara Menggunakan
-
-### Login
-1. **Akses** `http://localhost:3002`
-2. **Login** dengan kredensial yang tersedia di database
-3. **Dashboard** akan terbuka setelah autentikasi berhasil
-
-### Filter Data Omset & Laba
-1. **Pilih tanggal mulai** di date picker kiri
-2. **Pilih tanggal selesai** di date picker kanan  
-3. **Klik "Terapkan"** untuk memfilter data
-4. **Chart dan tabel** akan update dengan data sesuai rentang tanggal
-
-### Responsive Usage
-- **Desktop**: Chart dan tabel side-by-side dengan full features
-- **Tablet**: Layout tetap side-by-side dengan spacing disesuaikan
-- **Mobile**: Chart dan tabel stack vertikal untuk kemudahan akses
-
-## 📁 Struktur File
+##  Struktur Project
 
 ```
 wsb-report/
-├── backend/               # Backend Express.js server
-│   ├── server.js          # Main server file
-│   ├── package.json       # Backend dependencies
-│   ├── package-lock.json  # Lock file
-│   ├── node_modules/      # Backend dependencies
-│   └── README.md          # Backend documentation
-├── css/                   # Frontend CSS files
-│   ├── base.css           # Base styles dan variabel
-│   ├── login.css          # Login page styles
-│   └── dashboard-v2.css   # Dashboard styles
-├── imgs/                  # Assets gambar
-│   └── LOGO_WSB_blue.png
-├── index.html             # Login page
-├── dashboard.html         # Frontend dashboard
-├── script.js              # Frontend JavaScript
-└── README.md              # Main documentation
+├── backend/
+│   ├── server.js          # Express.js server dengan API endpoints
+│   └── package.json       # Backend dependencies
+├── css/
+│   └── dashboard-v2.css   # Styling untuk dashboard
+├── imgs/
+│   └── LOGO_WSB_blue.png  # Logo assets
+├── dashboard.html         # Main dashboard interface  
+├── script.js              # Frontend JavaScript logic
+└── README.md              # Documentation
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
-### Server tidak bisa connect ke database
-- Pastikan MySQL server berjalan di port 3306
-- Cek konfigurasi database di `backend/server.js`
-- Pastikan database `toko` exists dengan struktur sesuai dokumentasi
-- Jika database kosong, server akan menggunakan data fallback
+### Server Issues
+- **Port 3306**: Pastikan MySQL berjalan di port default
+- **Database connection**: Cek konfigurasi di `backend/server.js`
+- **Missing tables**: Server akan log error jika tabel tidak ditemukan
 
-### Login gagal
-- Pastikan user dengan password MD5 hash yang benar ada di tabel `user`
-- Cek endpoint `/api/auth/login` di browser network tab
-- Pastikan server backend berjalan di port 3002
+### Dashboard Issues  
+- **API calls**: Cek browser network tab untuk failed requests
+- **Chart rendering**: Pastikan Chart.js loaded dari CDN
+- **Console errors**: Monitor browser console untuk JavaScript errors
 
-### Dashboard tidak load data
-- Pastikan server Express.js berjalan di port 3002 (bukan 3000)
-- Cek console browser untuk error message  
-- Cek API calls di browser network tab
-- Jika ada CORS error, server sudah include CORS middleware
+### Performance Issues
+- **Large datasets**: API menggunakan LIMIT untuk query besar
+- **Date ranges**: Filter tanggal untuk membatasi data yang dimuat
+- **SQL optimization**: Query sudah dioptimasi dengan proper indexing
 
-### Chart tidak muncul
-- Pastikan Chart.js library ter-load dari CDN
-- Cek console browser untuk JavaScript errors
-- Refresh halaman dan cek network tab untuk failed requests
-- Pastikan canvas element dengan id `revenueProfitChart` ada
 
-## 🗄️ Database Schema
-
-Project ini menggunakan database MySQL dengan nama `toko` yang memiliki struktur lengkap untuk sistem POS/retail:
-
-### Tabel Utama:
-- **`user`**: Data pengguna dengan autentikasi MD5
-- **`penjualan_fix`**: Header transaksi penjualan
-- **`penjualan_det`**: Detail item per transaksi  
-- **`produk`**: Master data produk dengan stok
-- **`pecah_stok`**: Harga dan stok detail per satuan
-- **`kategori`**: Kategori produk
-- **`distributor`**: Data supplier
-
-### Data yang Digunakan Dashboard:
-- **Total Pendapatan**: `SUM(grand_total)` dari `penjualan_fix`
-- **Omset & Laba**: Join `penjualan_fix` + `penjualan_det` untuk kalkulasi laba
-- **Total Produk**: `COUNT(*)` dari `produk`  
-- **Stok Menipis**: Produk dengan `stok_toko < stok_minimal`
-
-*Referensi database structure tersedia di folder `db_structure_referrence/` (excluded dari git)*
-
-## 📝 Notes & Architecture
-
-### Backend Architecture
-- **Modular structure**: File backend terpisah di folder `backend/`
-- **Clean API endpoints**: RESTful design dengan proper error handling
-- **Database fallback**: Jika database tidak tersedia, menggunakan sample data
-- **MD5 Authentication**: Password hashing sesuai sistem existing
-
-### Frontend Architecture  
-- **Vanilla JavaScript**: No framework dependency, lightweight
-- **Modular CSS**: Terpisah antara base, login, dan dashboard styles
-- **Responsive first**: Mobile-friendly design dari awal
-- **API-driven**: Semua data dari backend API calls
-
-### Security Features
-- **MD5 password hashing**: Sesuai dengan sistem database existing
-- **Session management**: LocalStorage untuk state persistence  
-- **CORS enabled**: Cross-origin requests handled properly
-- **Input validation**: Client-side dan server-side validation
-
-### Performance Optimizations
-- **Chart.js optimized**: maintainAspectRatio false untuk responsive
-- **Efficient queries**: Database query optimization untuk performa
-- **CDN resources**: Font Awesome dan Chart.js dari CDN
-- **Minimal dependencies**: Lightweight stack untuk fast loading
+## Kontributor
+<a href="https://github.com/Azixe/wsb-report/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Azixe/wsb-report"  alt="wsb-report Contributors"/>
+</a>
 
