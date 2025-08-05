@@ -66,25 +66,32 @@ app.get('/api/revenue-profit', async (req, res) => {
     try {
         const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
-        console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}`);
+        console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+        
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
         
         const query = `
             SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota
             FROM (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, SUM((netto - h_beli) * (jumlah - retur)) AS total_laba, 
-            SUM(total) AS total_omset FROM penjualan_det where tgl_jual BETWEEN ? AND ? 
+            SUM(total) AS total_omset FROM penjualan_det where tgl_jual BETWEEN ? AND ?${cabangCondition}
             GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS a 
             LEFT JOIN (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, 
-            COUNT(no_faktur_jual) AS jumlah_faktur FROM penjualan_fix where tgl_jual BETWEEN ? AND ? 
+            COUNT(no_faktur_jual) AS jumlah_faktur FROM penjualan_fix where tgl_jual BETWEEN ? AND ?${cabangCondition}
             GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS b 
             ON a.bulan = b.bulan 
             ORDER BY a.bulan
         `;
         
-        const results = await executeQuery(query, [startDate, endDate, startDate, endDate]);
+        const params = [startDate, endDate, ...cabangParams, startDate, endDate, ...cabangParams];
+        const results = await executeQuery(query, params);
 
-        const totalRevenueQuery = `SELECT SUM(grand_total) AS total_revenue FROM penjualan_fix WHERE tgl_jual BETWEEN ? AND ?`;
-        const totalRevenueResult = await executeQuery(totalRevenueQuery, [startDate, endDate]);
+        const totalRevenueQuery = `SELECT SUM(grand_total) AS total_revenue FROM penjualan_fix WHERE tgl_jual BETWEEN ? AND ?${cabangCondition}`;
+        const totalRevenueParams = [startDate, endDate, ...cabangParams];
+        const totalRevenueResult = await executeQuery(totalRevenueQuery, totalRevenueParams);
         const totalRevenue = totalRevenueResult[0]?.total_revenue || 0;
 
         
@@ -431,8 +438,13 @@ app.get('/api/user-sales', async (req, res) => {
     try {
         const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
-        console.log(`📊 Loading user sales data from ${startDate} to ${endDate}`);
+        console.log(`📊 Loading user sales data from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+        
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
         
         // Query untuk mendapatkan total penjualan per operator
         const userSalesQuery = `
@@ -442,7 +454,7 @@ app.get('/api/user-sales', async (req, res) => {
                 SUM(pd.total) as total_sales
             FROM penjualan_fix pf
             LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
-            WHERE pf.tgl_jual BETWEEN ? AND ?
+            WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pf.operator IS NOT NULL 
             AND pf.operator != ''
             AND pd.total > 0
@@ -450,7 +462,8 @@ app.get('/api/user-sales', async (req, res) => {
             ORDER BY total_sales DESC
         `;
         
-        const userSalesResults = await executeQuery(userSalesQuery, [startDate, endDate]);
+        const params = [startDate, endDate, ...cabangParams];
+        const userSalesResults = await executeQuery(userSalesQuery, params);
         
         // Format data untuk response
         const formattedData = userSalesResults.map(row => ({
@@ -541,6 +554,24 @@ app.get('/api/users', async (req, res) => {
         // Fallback data
         res.json([
             { operators: 'Users'}
+        ]);
+    }
+});
+
+// Cabang endpoint - untuk mendapatkan daftar cabang
+app.get('/api/cabang', async (req, res) => {
+    try {
+        const query = 'SELECT kd_cabang, nama_cabang FROM cabang ORDER BY kd_cabang';
+        const results = await executeQuery(query);
+        
+        console.log('Cabang found:', results.length);
+        res.json(results);
+    } catch (error) {
+        console.error('Cabang API error:', error);
+        // Fallback data
+        res.json([
+            { kd_cabang: 1, nama_cabang: 'WSB Pusat' },
+            { kd_cabang: 2, nama_cabang: 'WSB Cabang' }
         ]);
     }
 });

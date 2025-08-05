@@ -58,11 +58,8 @@
             <div class="header-right">
                 <div class="header-actions">
                     <div class="user-profile">
-                        <div class="kd_cabang-selection">
-                            <select id="cabangSelect" class="category-select">
-                                <option value="">Pilih Cabang</option>
-                            </select>
-                        </div>
+                        <span class="user-name">Administrator</span>
+                        <i class="fas fa-user-circle"></i>
                     </div>
                 </div>
             </div>
@@ -139,6 +136,9 @@
                         <div class="chart-header">
                             <h3>Omset & Laba</h3>
                             <div class="chart-controls">
+                                <select id="cabangSelect" class="category-select">
+                                    <option value="">Semua Cabang</option>
+                                </select>
                                 <input type="date" id="startDate" class="date-input">
                                 <span>-</span>
                                 <input type="date" id="endDate" class="date-input">
@@ -318,6 +318,10 @@
                 <!-- Controls -->
                 <div class="controls-row">
                     <div class="date-controls">
+                        <label>Cabang:</label>
+                        <select id="userCabangSelect" class="category-select">
+                            <option value="">Semua Cabang</option>
+                        </select>
                         <label>Periode:</label>
                         <input type="date" id="userSalesStartDate" class="date-input">
                         <span>-</span>

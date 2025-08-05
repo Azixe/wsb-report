@@ -71,6 +71,7 @@ function initDashboard() {
     initTrendControls();
     loadDashboardData();
     loadCategories();
+    loadCabang(); // Load cabang data
     updateUserInfo();
     startRealTimeUpdates();
     
@@ -781,6 +782,7 @@ function initUserSalesDateRange() {
     const applyBtn = document.getElementById('applyUserSalesFilter');
     const applyBtnOperator = document.getElementById('applyUserFilter');
     const userSelect = document.getElementById('userSelect');
+    const userCabangSelect = document.getElementById('userCabangSelect');
     
     if (startDateInput && endDateInput && applyBtn && applyBtnOperator) {
         // Set default date range (last 30 days)
@@ -795,6 +797,7 @@ function initUserSalesDateRange() {
         applyBtn.addEventListener('click', function() {
             const start = startDateInput.value;
             const end = endDateInput.value;
+            const kdCabang = userCabangSelect ? userCabangSelect.value : null;
             
             if (!start || !end) {
                 showNotification('Pilih tanggal mulai dan selesai', 'warning');
@@ -806,9 +809,18 @@ function initUserSalesDateRange() {
                 return;
             }
             
-            loadUserSalesData(start, end);
-            showNotification(`Memuat data performa operator dari ${start} sampai ${end}`, 'info');
+            loadUserSalesData(start, end, kdCabang);
+            const cabangText = kdCabang && userCabangSelect ? ` untuk cabang ${userCabangSelect.options[userCabangSelect.selectedIndex].text}` : '';
+            showNotification(`Memuat data performa operator dari ${start} sampai ${end}${cabangText}`, 'info');
         });
+        
+        // Add cabang change listener
+        if (userCabangSelect) {
+            userCabangSelect.addEventListener('change', function() {
+                // Auto-reload when cabang changes
+                applyBtn.click();
+            });
+        }
 
         applyBtnOperator.addEventListener('click', function() {
             const start = startDateInput.value;
@@ -925,7 +937,7 @@ async function loadUser() {
     }
 }
 
-async function loadUserSalesData(startDate = null, endDate = null) {
+async function loadUserSalesData(startDate = null, endDate = null, kdCabang = null) {
     try {
         console.log('Loading user sales data...');
         showNotification('Memuat data performa operator...', 'info');
@@ -934,6 +946,9 @@ async function loadUserSalesData(startDate = null, endDate = null) {
         if (startDate && endDate) {
             params.start_date = startDate;
             params.end_date = endDate;
+        }
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
         }
         
         const data = await fetchAPI('user-sales', params);
@@ -1091,7 +1106,7 @@ function formatNumber(number) {
 }
 
 // Load data for mini revenue chart
-async function loadMiniRevenueChart(startDate = null, endDate = null) {
+async function loadMiniRevenueChart(startDate = null, endDate = null, kdCabang = null) {
     try {
         // Use same date logic as revenue profit data
         if (!startDate || !endDate) {
@@ -1107,6 +1122,10 @@ async function loadMiniRevenueChart(startDate = null, endDate = null) {
             start_date: startDate,
             end_date: endDate
         };
+        
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+        }
 
         // Fetch actual revenue data
         const stats = await fetchAPI('revenue-profit', params);
@@ -1152,7 +1171,7 @@ async function loadMiniRevenueChart(startDate = null, endDate = null) {
 }
 
 // Load data for mini profit chart
-async function loadMiniProfitChart(startDate = null, endDate = null) {
+async function loadMiniProfitChart(startDate = null, endDate = null, kdCabang = null) {
     try {
         // Use same date logic as revenue profit data
         if (!startDate || !endDate) {
@@ -1168,6 +1187,10 @@ async function loadMiniProfitChart(startDate = null, endDate = null) {
             start_date: startDate,
             end_date: endDate
         };
+        
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+        }
 
         // Fetch actual profit data
         const stats = await fetchAPI('revenue-profit', params);
@@ -1213,7 +1236,7 @@ async function loadMiniProfitChart(startDate = null, endDate = null) {
 }
 
 // Functions to load and handle dashboard data
-async function loadDashboardData(startDate = null, endDate = null) {
+async function loadDashboardData(startDate = null, endDate = null, kdCabang = null) {
     try {
         console.log('Loading dashboard data...');
         showNotification('Memuat data dari database...', 'info');
@@ -1222,6 +1245,9 @@ async function loadDashboardData(startDate = null, endDate = null) {
         if (startDate && endDate) {
             params.start_date = startDate;
             params.end_date = endDate;
+        }
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
         }
         
         // Load revenue profit data
@@ -1233,7 +1259,7 @@ async function loadDashboardData(startDate = null, endDate = null) {
         updateStatsCards(stats);
         
         // Load initial revenue/profit data
-        await loadRevenueProfitData(startDate, endDate);
+        await loadRevenueProfitData(startDate, endDate, kdCabang);
         
         console.log('Dashboard data loading completed');
         showNotification('Data berhasil dimuat!', 'success');
@@ -1329,6 +1355,7 @@ function initDateRange() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     const applyBtn = document.getElementById('applyDateRange');
+    const cabangSelect = document.getElementById('cabangSelect');
     
     if (startDateInput && endDateInput && applyBtn) {
         // Set default date range (last 7 days)
@@ -1346,6 +1373,7 @@ function initDateRange() {
         applyBtn.addEventListener('click', function() {
             const start = startDateInput.value;
             const end = endDateInput.value;
+            const kdCabang = cabangSelect ? cabangSelect.value : null;
             
             if (!start || !end) {
                 showNotification('Pilih tanggal mulai dan selesai', 'warning');
@@ -1357,12 +1385,22 @@ function initDateRange() {
                 return;
             }
             
-            loadDashboardData(start, end);
-            loadRevenueProfitData(start, end);
-            loadRevenueProfitDataTabels(start, end);
+            loadDashboardData(start, end, kdCabang);
+            loadRevenueProfitData(start, end, kdCabang);
+            loadRevenueProfitDataTabels(start, end, kdCabang);
             updateRevenuePeriod(start, end);
-            showNotification(`Memuat data dari ${start} sampai ${end}`, 'info');
+            
+            const cabangText = kdCabang ? ` untuk cabang ${cabangSelect.options[cabangSelect.selectedIndex].text}` : '';
+            showNotification(`Memuat data dari ${start} sampai ${end}${cabangText}`, 'info');
         });
+        
+        // Add cabang change listener
+        if (cabangSelect) {
+            cabangSelect.addEventListener('change', function() {
+                // Auto-reload when cabang changes
+                applyBtn.click();
+            });
+        }
         
         // Add enter key support
         [startDateInput, endDateInput].forEach(input => {
@@ -1620,7 +1658,7 @@ function updateOverviewCategoryLegend(summary) {
 }
 
 // Revenue & Profit Data Functions
-async function loadRevenueProfitData(startDate = null, endDate = null) {
+async function loadRevenueProfitData(startDate = null, endDate = null, kdCabang = null) {
     try {
         const params = {};
         
@@ -1632,6 +1670,11 @@ async function loadRevenueProfitData(startDate = null, endDate = null) {
             console.log('Loading revenue profit data with default date range');
         }
         
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+            console.log('Loading revenue profit data for cabang:', kdCabang);
+        }
+        
         const data = await fetchAPI('revenue-profit', params);
         
         if (data && (data.labels || Array.isArray(data))) {
@@ -1639,8 +1682,8 @@ async function loadRevenueProfitData(startDate = null, endDate = null) {
             updateRevenueProfitChart(data);
             
             // Also update the mini charts with the same date range
-            await loadMiniRevenueChart(startDate, endDate);
-            await loadMiniProfitChart(startDate, endDate);
+            await loadMiniRevenueChart(startDate, endDate, kdCabang);
+            await loadMiniProfitChart(startDate, endDate, kdCabang);
         } else {
             console.log('No valid revenue profit data received, using fallback');
             // You can add fallback data here if needed
@@ -1692,7 +1735,7 @@ function updateRevenueProfitChart(data) {
     console.log('Revenue profit chart updated with data:', { labels, revenueData, profitData });
 }
 
-async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
+async function loadRevenueProfitDataTabels(startDate = null, endDate = null, kdCabang = null) {
     try {
         const params = {};
         
@@ -1702,6 +1745,11 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null) {
             console.log('Loading revenue profit table data for date range:', startDate, 'to', endDate);
         } else {
             console.log('Loading revenue profit table data with default date range');
+        }
+        
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+            console.log('Loading revenue profit table data for cabang:', kdCabang);
         }
 
         const data = await fetchAPI('revenue-profit', params);
@@ -1813,6 +1861,42 @@ async function loadCategories() {
     } catch (error) {
         console.error('Error loading categories:', error);
         showNotification('Gagal memuat data kategori', 'error');
+    }
+}
+
+// Load cabang data
+async function loadCabang() {
+    try {
+        const data = await fetchAPI('cabang');
+        const cabangSelect = document.getElementById('cabangSelect');
+        const userCabangSelect = document.getElementById('userCabangSelect');
+        
+        if (data && Array.isArray(data)) {
+            // Populate main cabang selector
+            if (cabangSelect) {
+                cabangSelect.innerHTML = '<option value="">Semua Cabang</option>';
+                data.forEach(cabang => {
+                    const option = document.createElement('option');
+                    option.value = cabang.kd_cabang;
+                    option.textContent = cabang.nama_cabang;
+                    cabangSelect.appendChild(option);
+                });
+            }
+            
+            // Populate user sales cabang selector
+            if (userCabangSelect) {
+                userCabangSelect.innerHTML = '<option value="">Semua Cabang</option>';
+                data.forEach(cabang => {
+                    const option = document.createElement('option');
+                    option.value = cabang.kd_cabang;
+                    option.textContent = cabang.nama_cabang;
+                    userCabangSelect.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading cabang:', error);
+        showNotification('Gagal memuat data cabang', 'error');
     }
 }
 
