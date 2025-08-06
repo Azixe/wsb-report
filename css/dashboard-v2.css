@@ -623,7 +623,7 @@ canvas {
   .revenue-cards-row {
     grid-template-columns: 1fr;
     gap: 1.5rem;
-    max-width: 100%;
+    width: 100%;
   }
 
   .modern-revenue-card {
@@ -1126,7 +1126,7 @@ canvas {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  max-width: 900px;
+  width: 100%;
 }
 
 .modern-revenue-card {
