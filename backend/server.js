@@ -500,6 +500,10 @@ app.get('/api/user-individual-sales', async (req, res) => {
         const operator1 = req.query.operator;
         const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        const kdCabang = req.query.kd_cabang;
+
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
         
         console.log(`📊 Loading user sales data from ${startDate} to ${endDate}`);
 
@@ -514,13 +518,13 @@ app.get('/api/user-individual-sales', async (req, res) => {
             FROM penjualan_fix pf
             LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
             WHERE pf.operator = ? 
-            AND pf.tgl_jual BETWEEN ? AND ?
+            AND pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.total > 0
             GROUP BY pd.barcode, pd.nama_produk
             ORDER BY total_sales DESC
         `;
 
-        let userSaleQueryResults = await executeQuery(userSaleQuery, [operator1, startDate, endDate]);
+        let userSaleQueryResults = await executeQuery(userSaleQuery, [operator1, startDate, endDate, ...cabangParams]);
         
         console.log(`✅ Found ${formattedData1.length} operators with sales data`);
         
@@ -544,8 +548,11 @@ app.get('/api/user-individual-sales', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     try {
         // Try to get user from penjualan_fix table first
-        let query = 'SELECT DISTINCT operator FROM penjualan_fix ORDER BY operator';
-        let results = await executeQuery(query);
+        const kdCabang = req.query.kd_cabang;
+        const cabangCondition = kdCabang ? ' WHERE kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
+        let query = `SELECT DISTINCT operator FROM penjualan_fix${cabangCondition} ORDER BY operator`;
+        let results = await executeQuery(query, [...cabangParams]);
         
         console.log('User found:', results.length);
         res.json(results);

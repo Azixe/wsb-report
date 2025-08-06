@@ -818,7 +818,9 @@ function initUserSalesDateRange() {
         if (userCabangSelect) {
             userCabangSelect.addEventListener('change', function() {
                 // Auto-reload when cabang changes
+                const kdCabang = userCabangSelect.value;
                 applyBtn.click();
+                loadUser(kdCabang);
             });
         }
 
@@ -826,14 +828,16 @@ function initUserSalesDateRange() {
             const start = startDateInput.value;
             const end = endDateInput.value;
             const operatorUser = userSelect.value;
+            const kdCabang = userCabangSelect ? userCabangSelect.value : null;
 
             if (!operatorUser) {
                 showNotification('Pilih operator terlebih dahulu', 'warning');
                 return;
             }
 
-            loadUserSalesDataIndividual(start, end, operatorUser);
-            showNotification(`memuat data performa operator: ${operatorUser}`, 'info');
+            loadUserSalesDataIndividual(start, end, operatorUser, kdCabang);
+            const cabangText = kdCabang && userCabangSelect ? ` untuk cabang ${userCabangSelect.options[userCabangSelect.selectedIndex].text}` : '';
+            showNotification(`Memuat data performa operator dari ${start} sampai ${end}${cabangText}`, 'info');
         });
         
         // Add enter key support
@@ -916,9 +920,10 @@ function initUserSalesChart() {
     }
 }
 
-async function loadUser() {
+async function loadUser(kdCabang = null) {
     try {
-        const data = await fetchAPI('users');
+        const params = { kd_cabang : kdCabang};
+        const data = await fetchAPI('users', params);
         
         if (userSelect && data && Array.isArray(data)) {
             // Clear existing options except the first one
@@ -969,7 +974,7 @@ async function loadUserSalesData(startDate = null, endDate = null, kdCabang = nu
     }
 }
 
-async function loadUserSalesDataIndividual(startDate = null, endDate = null, operatorUser = null) {
+async function loadUserSalesDataIndividual(startDate = null, endDate = null, operatorUser = null, kdCabang = null) {
     if (!operatorUser) {
             showNotification('Pilih operator terlebih dahulu', 'warning');
             return;
@@ -982,7 +987,8 @@ async function loadUserSalesDataIndividual(startDate = null, endDate = null, ope
         const params = {
             operator: operatorUser,
             start_date: startDate,
-            end_date: endDate
+            end_date: endDate,
+            kd_cabang: kdCabang
         };
         
         const data = await fetchAPI('user-individual-sales', params);
