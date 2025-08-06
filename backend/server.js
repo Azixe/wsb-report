@@ -192,11 +192,11 @@ app.get('/api/category-sales', async (req, res) => {
         
         console.log(`📊 Loading category sales data for category "${categoryId}" from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
         
-        // Tambahkan kondisi WHERE untuk cabang jika ada
-        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        // Tambahkan kondisi WHERE untuk cabang dengan proper JOIN
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
         
-        // Query untuk mendapatkan data produk dalam kategori dari pecah_stok dan penjualan_det
+        // Query untuk mendapatkan data produk dalam kategori dengan proper JOIN
         const productsQuery = `
             SELECT 
                 ps.kd_produk,
@@ -206,8 +206,9 @@ app.get('/api/category-sales', async (req, res) => {
                 SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
+            LEFT JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
             WHERE ps.kategori = ? 
-            AND pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
+            AND pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             GROUP BY ps.kd_produk, ps.nama_produk
             HAVING total_qty > 0
@@ -217,7 +218,7 @@ app.get('/api/category-sales', async (req, res) => {
         const productsParams = [categoryId, startDate, endDate, ...cabangParams];
         let productsResult = await executeQuery(productsQuery, productsParams);
         
-        // Jika tidak ada hasil dari pecah_stok, coba langsung dari penjualan_det berdasarkan nama produk
+        // Jika tidak ada hasil dari pecah_stok, coba langsung dari penjualan_det dengan proper JOIN
         if (!productsResult || productsResult.length === 0) {
             const alternativeQuery = `
                 SELECT 
@@ -227,7 +228,8 @@ app.get('/api/category-sales', async (req, res) => {
                     SUM(pd.total) as total_omset,
                     SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
                 FROM penjualan_det pd
-                WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
+                LEFT JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
+                WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
                 AND pd.jumlah > 0
                 AND pd.nama_produk LIKE ?
                 GROUP BY pd.kd_produk, pd.nama_produk
@@ -242,15 +244,16 @@ app.get('/api/category-sales', async (req, res) => {
             productsResult = await executeQuery(alternativeQuery, altParams);
         }
         
-        // Query untuk chart data (top 8 produk)
+        // Query untuk chart data (top 8 produk) with proper JOIN
         const chartQuery = `
             SELECT 
                 ps.nama_produk,
                 SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
+            LEFT JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
             WHERE ps.kategori = ? 
-            AND pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
+            AND pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             GROUP BY ps.kd_produk, ps.nama_produk
             HAVING total_qty > 0
@@ -300,11 +303,11 @@ app.get('/api/category-sales-summary', async (req, res) => {
         
         console.log(`📊 Loading category sales summary from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
         
-        // Tambahkan kondisi WHERE untuk cabang jika ada
-        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        // Tambahkan kondisi WHERE untuk cabang dengan proper JOIN
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
         
-        // Query untuk mendapatkan total penjualan per kategori
+        // Query untuk mendapatkan total penjualan per kategori dengan proper JOIN
         const categorySummaryQuery = `
             SELECT 
                 ps.kategori,
@@ -314,7 +317,8 @@ app.get('/api/category-sales-summary', async (req, res) => {
                 SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
-            WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
+            LEFT JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
+            WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             AND ps.kategori IS NOT NULL 
             AND ps.kategori != ''
@@ -326,7 +330,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
         const params = [startDate, endDate, ...cabangParams];
         let categoryResults = await executeQuery(categorySummaryQuery, params);
         
-        // Jika tidak ada data dari pecah_stok, coba dari penjualan_det langsung
+        // Jika tidak ada data dari pecah_stok, coba dari penjualan_det langsung dengan proper JOIN
         if (!categoryResults || categoryResults.length === 0) {
             const alternativeQuery = `
                 SELECT 
@@ -336,7 +340,8 @@ app.get('/api/category-sales-summary', async (req, res) => {
                     SUM(pd.total) as total_omset,
                     SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
                 FROM penjualan_det pd
-                WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
+                LEFT JOIN penjualan_fix pf ON pd.no_faktur_jual = pf.no_faktur_jual
+                WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
                 AND pd.jumlah > 0
                 GROUP BY 'UMUM'
                 HAVING total_omset > 0
@@ -569,36 +574,40 @@ app.get('/api/daily-sales-trend', async (req, res) => {
         console.log(`📈 Loading daily sales trend for ${days} days or date range ${startDate} - ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
 
         // Tambahkan kondisi WHERE untuk cabang jika ada
-        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
 
         let query, params;
 
         if (startDate && endDate) {
-            // Use custom date range
+            // Use custom date range with proper JOIN
             query = `
                 SELECT 
-                    DATE(pd.tgl_jual) as tanggal,
+                    DATE(pf.tgl_jual) as tanggal,
                     SUM(pd.total) as total_omset,
-                    COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
+                    COUNT(DISTINCT pf.no_faktur_jual) as jumlah_transaksi,
                     SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
-                FROM penjualan_det pd
-                WHERE DATE(pd.tgl_jual) BETWEEN ? AND ?${cabangCondition}
-                GROUP BY DATE(pd.tgl_jual)
+                FROM penjualan_fix pf
+                LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+                WHERE DATE(pf.tgl_jual) BETWEEN ? AND ?${cabangCondition}
+                AND pd.jumlah > 0
+                GROUP BY DATE(pf.tgl_jual)
                 ORDER BY tanggal ASC
             `;
             params = [startDate, endDate, ...cabangParams];
         } else {
-            // Use days parameter
+            // Use days parameter with proper JOIN
             query = `
                 SELECT 
-                    DATE(pd.tgl_jual) as tanggal,
+                    DATE(pf.tgl_jual) as tanggal,
                     SUM(pd.total) as total_omset,
-                    COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
+                    COUNT(DISTINCT pf.no_faktur_jual) as jumlah_transaksi,
                     SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
-                FROM penjualan_det pd
-                WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? DAY)${cabangCondition}
-                GROUP BY DATE(pd.tgl_jual)
+                FROM penjualan_fix pf
+                LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+                WHERE pf.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? DAY)${cabangCondition}
+                AND pd.jumlah > 0
+                GROUP BY DATE(pf.tgl_jual)
                 ORDER BY tanggal ASC
             `;
             params = [days, ...cabangParams];
@@ -634,23 +643,25 @@ app.get('/api/weekly-sales-trend', async (req, res) => {
 
         console.log(`📊 Loading weekly sales trend for ${weeks} weeks${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
 
-        // Tambahkan kondisi WHERE untuk cabang jika ada
-        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        // Tambahkan kondisi WHERE untuk cabang dengan proper JOIN
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
 
         const query = `
             SELECT 
-                YEARWEEK(pd.tgl_jual, 1) as week_number,
-                CONCAT('Minggu ', WEEK(MIN(pd.tgl_jual), 1) + 1, ' (', 
-                       DATE_FORMAT(MIN(pd.tgl_jual), '%d %b'), ' - ', 
-                       DATE_FORMAT(MAX(pd.tgl_jual), '%d %b'), ')') as minggu,
+                YEARWEEK(pf.tgl_jual, 1) as week_number,
+                CONCAT('Minggu ', WEEK(MIN(pf.tgl_jual), 1) + 1, ' (', 
+                       DATE_FORMAT(MIN(pf.tgl_jual), '%d %b'), ' - ', 
+                       DATE_FORMAT(MAX(pf.tgl_jual), '%d %b'), ')') as minggu,
                 SUM(pd.total) as total_omset,
-                COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
-                ROUND(SUM(pd.total) / COUNT(DISTINCT DATE(pd.tgl_jual)), 2) as rata_rata_harian,
+                COUNT(DISTINCT pf.no_faktur_jual) as jumlah_transaksi,
+                ROUND(SUM(pd.total) / COUNT(DISTINCT DATE(pf.tgl_jual)), 2) as rata_rata_harian,
                 SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
-            FROM penjualan_det pd
-            WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)${cabangCondition}
-            GROUP BY YEARWEEK(pd.tgl_jual, 1)
+            FROM penjualan_fix pf
+            LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+            WHERE pf.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)${cabangCondition}
+            AND pd.jumlah > 0
+            GROUP BY YEARWEEK(pf.tgl_jual, 1)
             ORDER BY week_number ASC
         `;
 
