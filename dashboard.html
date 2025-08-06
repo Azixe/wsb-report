@@ -177,17 +177,6 @@
                     <div class="chart-container">
                         <div class="chart-header">
                             <h3>Trend Penjualan Harian</h3>
-                            <div class="chart-controls">
-                                <select id="trendPeriod" class="category-select">
-                                    <option value="7">7 Hari Terakhir</option>
-                                    <option value="14">14 Hari Terakhir</option>
-                                    <option value="30" selected>30 Hari Terakhir</option>
-                                </select>
-                                <input type="date" id="trendStartDate" class="date-input">
-                                <span>-</span>
-                                <input type="date" id="trendEndDate" class="date-input">
-                                <button id="applyTrendFilter" class="apply-btn">Terapkan</button>
-                            </div>
                         </div>
                         <div class="chart-wrapper">
                             <canvas id="dailyTrendChart"></canvas>
@@ -198,14 +187,6 @@
                     <div class="chart-container">
                         <div class="chart-header">
                             <h3>Ringkasan Penjualan Mingguan</h3>
-                            <div class="chart-controls">
-                                <select id="weeklyPeriod" class="category-select">
-                                    <option value="4">4 Minggu Terakhir</option>
-                                    <option value="8" selected>8 Minggu Terakhir</option>
-                                    <option value="12">12 Minggu Terakhir</option>
-                                </select>
-                                <button id="applyWeeklyFilter" class="apply-btn">Terapkan</button>
-                            </div>
                         </div>
                         <div class="chart-wrapper">
                             <canvas id="weeklyTrendChart"></canvas>
@@ -218,12 +199,6 @@
                     <div class="overview-container">
                         <div class="overview-header">
                             <h2>Overview Penjualan by Kategori</h2>
-                            <div class="overview-controls">
-                                <input type="date" id="overviewStartDate" class="date-input">
-                                <span>-</span>
-                                <input type="date" id="overviewEndDate" class="date-input">
-                                <button id="applyOverviewDateRange" class="apply-btn">Terapkan</button>
-                            </div>
                         </div>
                         <div class="overview-content">
                             <div class="overview-chart">
@@ -255,9 +230,6 @@
                                 <select id="categorySelect" class="category-select">
                                     <option value="">Pilih Kategori...</option>
                                 </select>
-                                <input type="date" id="categoryStartDate" class="date-input">
-                                <span>-</span>
-                                <input type="date" id="categoryEndDate" class="date-input">
                                 <button id="applyCategoryFilter" class="apply-btn">Terapkan</button>
                             </div>
                         </div>
