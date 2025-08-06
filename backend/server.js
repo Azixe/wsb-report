@@ -182,6 +182,7 @@ app.get('/api/category-sales', async (req, res) => {
         const categoryId = req.query.category_id;
         const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
         if (!categoryId) {
             return res.status(400).json({
@@ -189,7 +190,11 @@ app.get('/api/category-sales', async (req, res) => {
             });
         }
         
-        console.log(`📊 Loading category sales data for category "${categoryId}" from ${startDate} to ${endDate}`);
+        console.log(`📊 Loading category sales data for category "${categoryId}" from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+        
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
         
         // Query untuk mendapatkan data produk dalam kategori dari pecah_stok dan penjualan_det
         const productsQuery = `
@@ -202,14 +207,15 @@ app.get('/api/category-sales', async (req, res) => {
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
             WHERE ps.kategori = ? 
-            AND pd.tgl_jual BETWEEN ? AND ?
+            AND pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             GROUP BY ps.kd_produk, ps.nama_produk
             HAVING total_qty > 0
             ORDER BY total_omset DESC
         `;
         
-        let productsResult = await executeQuery(productsQuery, [categoryId, startDate, endDate]);
+        const productsParams = [categoryId, startDate, endDate, ...cabangParams];
+        let productsResult = await executeQuery(productsQuery, productsParams);
         
         // Jika tidak ada hasil dari pecah_stok, coba langsung dari penjualan_det berdasarkan nama produk
         if (!productsResult || productsResult.length === 0) {
@@ -221,7 +227,7 @@ app.get('/api/category-sales', async (req, res) => {
                     SUM(pd.total) as total_omset,
                     SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
                 FROM penjualan_det pd
-                WHERE pd.tgl_jual BETWEEN ? AND ?
+                WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
                 AND pd.jumlah > 0
                 AND pd.nama_produk LIKE ?
                 GROUP BY pd.kd_produk, pd.nama_produk
@@ -232,7 +238,8 @@ app.get('/api/category-sales', async (req, res) => {
             
             // Coba dengan pattern matching kategori
             const categoryPattern = `%${categoryId}%`;
-            productsResult = await executeQuery(alternativeQuery, [startDate, endDate, categoryPattern]);
+            const altParams = [startDate, endDate, ...cabangParams, categoryPattern];
+            productsResult = await executeQuery(alternativeQuery, altParams);
         }
         
         // Query untuk chart data (top 8 produk)
@@ -243,7 +250,7 @@ app.get('/api/category-sales', async (req, res) => {
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
             WHERE ps.kategori = ? 
-            AND pd.tgl_jual BETWEEN ? AND ?
+            AND pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             GROUP BY ps.kd_produk, ps.nama_produk
             HAVING total_qty > 0
@@ -251,7 +258,8 @@ app.get('/api/category-sales', async (req, res) => {
             LIMIT 8
         `;
         
-        let chartResult = await executeQuery(chartQuery, [categoryId, startDate, endDate]);
+        const chartParams = [categoryId, startDate, endDate, ...cabangParams];
+        let chartResult = await executeQuery(chartQuery, chartParams);
         
         // Jika chart kosong, gunakan data dari products result
         if (!chartResult || chartResult.length === 0) {
@@ -275,24 +283,10 @@ app.get('/api/category-sales', async (req, res) => {
         
     } catch (error) {
         console.error('Category sales API error:', error);
-        
-        // Fallback data
-        const fallbackProducts = [
-            { kd_produk: 'P001', nama_produk: 'Contoh Produk A', total_qty: 150, total_omset: 1500000, total_laba: 450000 },
-            { kd_produk: 'P002', nama_produk: 'Contoh Produk B', total_qty: 120, total_omset: 1200000, total_laba: 360000 },
-            { kd_produk: 'P003', nama_produk: 'Contoh Produk C', total_qty: 100, total_omset: 1000000, total_laba: 300000 }
-        ];
-        
-        const fallbackChart = [
-            { nama_produk: 'Contoh Produk A', total_qty: 150 },
-            { nama_produk: 'Contoh Produk B', total_qty: 120 },
-            { nama_produk: 'Contoh Produk C', total_qty: 100 }
-        ];
-        
-        res.json({
-            products: fallbackProducts,
-            chart_data: fallbackChart,
-            error: 'Using fallback data: ' + error.message
+        res.status(500).json({
+            error: 'Failed to load category sales data: ' + error.message,
+            products: [],
+            chart_data: []
         });
     }
 });
@@ -302,8 +296,13 @@ app.get('/api/category-sales-summary', async (req, res) => {
     try {
         const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
-        console.log(`📊 Loading category sales summary from ${startDate} to ${endDate}`);
+        console.log(`📊 Loading category sales summary from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+        
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
         
         // Query untuk mendapatkan total penjualan per kategori
         const categorySummaryQuery = `
@@ -315,7 +314,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
                 SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
             FROM pecah_stok ps
             LEFT JOIN penjualan_det pd ON ps.kd_produk = pd.kd_produk
-            WHERE pd.tgl_jual BETWEEN ? AND ?
+            WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
             AND pd.jumlah > 0
             AND ps.kategori IS NOT NULL 
             AND ps.kategori != ''
@@ -324,7 +323,8 @@ app.get('/api/category-sales-summary', async (req, res) => {
             ORDER BY total_omset DESC
         `;
         
-        let categoryResults = await executeQuery(categorySummaryQuery, [startDate, endDate]);
+        const params = [startDate, endDate, ...cabangParams];
+        let categoryResults = await executeQuery(categorySummaryQuery, params);
         
         // Jika tidak ada data dari pecah_stok, coba dari penjualan_det langsung
         if (!categoryResults || categoryResults.length === 0) {
@@ -336,13 +336,13 @@ app.get('/api/category-sales-summary', async (req, res) => {
                     SUM(pd.total) as total_omset,
                     SUM((pd.netto - pd.h_beli) * (pd.jumlah - IFNULL(pd.retur, 0))) as total_laba
                 FROM penjualan_det pd
-                WHERE pd.tgl_jual BETWEEN ? AND ?
+                WHERE pd.tgl_jual BETWEEN ? AND ?${cabangCondition}
                 AND pd.jumlah > 0
                 GROUP BY 'UMUM'
                 HAVING total_omset > 0
             `;
             
-            categoryResults = await executeQuery(alternativeQuery, [startDate, endDate]);
+            categoryResults = await executeQuery(alternativeQuery, params);
         }
         
         // Hitung total keseluruhan
@@ -393,42 +393,17 @@ app.get('/api/category-sales-summary', async (req, res) => {
         
     } catch (error) {
         console.error('Category sales summary API error:', error);
-        
-        // Fallback data
-        const fallbackData = [
-            { kategori: 'MAKANAN', total_omset: 5500000, total_qty: 250, total_laba: 1650000, total_products: 15, percentage: '35.5' },
-            { kategori: 'MINUMAN', total_omset: 4200000, total_qty: 180, total_laba: 1260000, total_products: 12, percentage: '27.1' },
-            { kategori: 'ATK', total_omset: 3100000, total_qty: 95, total_laba: 930000, total_products: 8, percentage: '20.0' },
-            { kategori: 'ALAT LISTRIK', total_omset: 1800000, total_qty: 45, total_laba: 540000, total_products: 6, percentage: '11.6' },
-            { kategori: 'SABUN', total_omset: 900000, total_qty: 30, total_laba: 270000, total_products: 4, percentage: '5.8' }
-        ];
-        
-        const totalOmset = fallbackData.reduce((sum, cat) => sum + cat.total_omset, 0);
-        const totalQty = fallbackData.reduce((sum, cat) => sum + cat.total_qty, 0);
-        const totalLaba = fallbackData.reduce((sum, cat) => sum + cat.total_laba, 0);
-        
-        // Create top 5 from fallback data
-        const topCategories = fallbackData.slice(0, 5).map(cat => ({
-            name: cat.kategori,
-            total_omset: cat.total_omset,
-            percentage: cat.percentage
-        }));
-        
-        res.json({
-            categories: fallbackData,
+        res.status(500).json({
+            error: 'Failed to load category sales summary: ' + error.message,
+            categories: [],
             summary: {
-                total_categories: fallbackData.length,
-                total_omset: totalOmset,
-                total_qty: totalQty,
-                total_laba: totalLaba,
-                top_categories: topCategories, // Top 5 categories for fallback
-                top_category: {
-                    name: fallbackData[0].kategori,
-                    omset: fallbackData[0].total_omset,
-                    percentage: fallbackData[0].percentage
-                }
-            },
-            error: 'Using fallback data: ' + error.message
+                total_categories: 0,
+                total_omset: 0,
+                total_qty: 0,
+                total_laba: 0,
+                top_categories: [],
+                top_category: null
+            }
         });
     }
 });
@@ -588,9 +563,14 @@ app.get('/api/daily-sales-trend', async (req, res) => {
     try {
         const startDate = req.query.start_date;
         const endDate = req.query.end_date;
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
         let days = parseInt(req.query.days) || 30;
 
-        console.log(`📈 Loading daily sales trend for ${days} days or date range ${startDate} - ${endDate}`);
+        console.log(`📈 Loading daily sales trend for ${days} days or date range ${startDate} - ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
 
         let query, params;
 
@@ -603,11 +583,11 @@ app.get('/api/daily-sales-trend', async (req, res) => {
                     COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
                     SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
                 FROM penjualan_det pd
-                WHERE DATE(pd.tgl_jual) BETWEEN ? AND ?
+                WHERE DATE(pd.tgl_jual) BETWEEN ? AND ?${cabangCondition}
                 GROUP BY DATE(pd.tgl_jual)
                 ORDER BY tanggal ASC
             `;
-            params = [startDate, endDate];
+            params = [startDate, endDate, ...cabangParams];
         } else {
             // Use days parameter
             query = `
@@ -617,11 +597,11 @@ app.get('/api/daily-sales-trend', async (req, res) => {
                     COUNT(DISTINCT pd.no_faktur_jual) as jumlah_transaksi,
                     SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
                 FROM penjualan_det pd
-                WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+                WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? DAY)${cabangCondition}
                 GROUP BY DATE(pd.tgl_jual)
                 ORDER BY tanggal ASC
             `;
-            params = [days];
+            params = [days, ...cabangParams];
         }
 
         const results = await executeQuery(query, params);
@@ -650,8 +630,13 @@ app.get('/api/daily-sales-trend', async (req, res) => {
 app.get('/api/weekly-sales-trend', async (req, res) => {
     try {
         const weeks = parseInt(req.query.weeks) || 8;
+        const kdCabang = req.query.kd_cabang; // Filter cabang baru
 
-        console.log(`📊 Loading weekly sales trend for ${weeks} weeks`);
+        console.log(`📊 Loading weekly sales trend for ${weeks} weeks${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
+
+        // Tambahkan kondisi WHERE untuk cabang jika ada
+        const cabangCondition = kdCabang ? ' AND pd.kd_cabang = ?' : '';
+        const cabangParams = kdCabang ? [kdCabang] : [];
 
         const query = `
             SELECT 
@@ -664,12 +649,13 @@ app.get('/api/weekly-sales-trend', async (req, res) => {
                 ROUND(SUM(pd.total) / COUNT(DISTINCT DATE(pd.tgl_jual)), 2) as rata_rata_harian,
                 SUM(pd.jumlah - IFNULL(pd.retur, 0)) as total_qty
             FROM penjualan_det pd
-            WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)
+            WHERE pd.tgl_jual >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)${cabangCondition}
             GROUP BY YEARWEEK(pd.tgl_jual, 1)
             ORDER BY week_number ASC
         `;
 
-        const results = await executeQuery(query, [weeks]);
+        const params = [weeks, ...cabangParams];
+        const results = await executeQuery(query, params);
 
         // Format data untuk Chart.js
         const weeklyData = results.map(row => ({

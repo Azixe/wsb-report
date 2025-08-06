@@ -50,9 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize search functionality (if needed in future)
     initSearch();
-    
-    // Load initial revenue profit table data
-    loadRevenueProfitDataTabels();
 });
 
 // Dashboard Functions
@@ -69,11 +66,13 @@ function initDashboard() {
     initDateRange();
     initCategoryControls();
     initTrendControls();
-    loadDashboardData();
     loadCategories();
     loadCabang(); // Load cabang data
     updateUserInfo();
     startRealTimeUpdates();
+    
+    // Load initial data with unified system
+    loadAllDashboardData();
     
     // Add animations
     animateElements();
@@ -1391,9 +1390,8 @@ function initDateRange() {
                 return;
             }
             
-            loadDashboardData(start, end, kdCabang);
-            loadRevenueProfitData(start, end, kdCabang);
-            loadRevenueProfitDataTabels(start, end, kdCabang);
+            // Load all dashboard data with unified parameters
+            loadAllDashboardData(start, end, kdCabang);
             updateRevenuePeriod(start, end);
             
             const cabangText = kdCabang ? ` untuk cabang ${cabangSelect.options[cabangSelect.selectedIndex].text}` : '';
@@ -1417,137 +1415,42 @@ function initDateRange() {
             });
         });
     }
-    
-    // Initialize overview date range controls
-    initOverviewDateRange();
 }
 
-function initOverviewDateRange() {
-    const overviewStartDate = document.getElementById('overviewStartDate');
-    const overviewEndDate = document.getElementById('overviewEndDate');
-    const applyOverviewBtn = document.getElementById('applyOverviewDateRange');
-    
-    if (overviewStartDate && overviewEndDate && applyOverviewBtn) {
-        // Set default date range (last 30 days for overview)
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(endDate.getDate() - 30);
+// Unified function to load all dashboard data
+async function loadAllDashboardData(startDate = null, endDate = null, kdCabang = null) {
+    try {
+        console.log('Loading all dashboard data with unified parameters...');
         
-        overviewStartDate.value = startDate.toISOString().split('T')[0];
-        overviewEndDate.value = endDate.toISOString().split('T')[0];
+        // Load all dashboard components with the same parameters
+        await Promise.all([
+            loadDashboardData(startDate, endDate, kdCabang),
+            loadRevenueProfitData(startDate, endDate, kdCabang),
+            loadRevenueProfitDataTabels(startDate, endDate, kdCabang),
+            loadDailyTrendData(startDate, endDate, kdCabang),
+            loadWeeklyTrendData(null, kdCabang), // Weekly uses weeks parameter instead of dates
+            loadOverviewCategoryData(startDate, endDate, kdCabang)
+        ]);
         
-        // Add event listener for apply button
-        applyOverviewBtn.addEventListener('click', function() {
-            const start = overviewStartDate.value;
-            const end = overviewEndDate.value;
-            
-            if (!start || !end) {
-                showNotification('Pilih tanggal mulai dan selesai untuk overview', 'warning');
-                return;
-            }
-            
-            if (new Date(start) > new Date(end)) {
-                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
-                return;
-            }
-            
-            loadOverviewCategoryData(start, end);
-            showNotification(`Memuat data overview dari ${start} sampai ${end}`, 'info');
-        });
+        console.log('All dashboard data loaded successfully');
         
-        // Add enter key support
-        [overviewStartDate, overviewEndDate].forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    applyOverviewBtn.click();
-                }
-            });
-        });
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showNotification('Gagal memuat data dashboard', 'error');
     }
 }
+
+
 
 function initTrendControls() {
-    // Daily Trend Controls
-    const trendPeriod = document.getElementById('trendPeriod');
-    const trendStartDate = document.getElementById('trendStartDate');
-    const trendEndDate = document.getElementById('trendEndDate');
-    const applyTrendBtn = document.getElementById('applyTrendFilter');
-    
-    if (trendPeriod && trendStartDate && trendEndDate && applyTrendBtn) {
-        // Set default date range based on selected period
-        setTrendDateRange();
-        
-        // Period selection change
-        trendPeriod.addEventListener('change', function() {
-            setTrendDateRange();
-            loadDailyTrendData();
-        });
-        
-        // Apply button
-        applyTrendBtn.addEventListener('click', function() {
-            const start = trendStartDate.value;
-            const end = trendEndDate.value;
-            
-            if (!start || !end) {
-                showNotification('Pilih tanggal mulai dan selesai untuk trend', 'warning');
-                return;
-            }
-            
-            if (new Date(start) > new Date(end)) {
-                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
-                return;
-            }
-            
-            loadDailyTrendData(start, end);
-            showNotification(`Memuat trend penjualan dari ${start} sampai ${end}`, 'info');
-        });
-        
-        // Enter key support
-        [trendStartDate, trendEndDate].forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    applyTrendBtn.click();
-                }
-            });
-        });
-    }
-    
-    // Weekly Trend Controls
-    const weeklyPeriod = document.getElementById('weeklyPeriod');
-    const applyWeeklyBtn = document.getElementById('applyWeeklyFilter');
-    
-    if (weeklyPeriod && applyWeeklyBtn) {
-        applyWeeklyBtn.addEventListener('click', function() {
-            const weeks = parseInt(weeklyPeriod.value);
-            loadWeeklyTrendData(weeks);
-            showNotification(`Memuat trend mingguan ${weeks} minggu terakhir`, 'info');
-        });
-        
-        weeklyPeriod.addEventListener('change', function() {
-            const weeks = parseInt(this.value);
-            loadWeeklyTrendData(weeks);
-        });
-    }
+    // Trend controls removed - now controlled by main cabang selector
+    console.log('Trend controls unified with main cabang selector');
 }
 
-function setTrendDateRange() {
-    const trendPeriod = document.getElementById('trendPeriod');
-    const trendStartDate = document.getElementById('trendStartDate');
-    const trendEndDate = document.getElementById('trendEndDate');
-    
-    if (!trendPeriod || !trendStartDate || !trendEndDate) return;
-    
-    const days = parseInt(trendPeriod.value);
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - days);
-    
-    trendStartDate.value = startDate.toISOString().split('T')[0];
-    trendEndDate.value = endDate.toISOString().split('T')[0];
-}
+
 
 // Overview Category Data Functions - BACKEND TERHUBUNG
-async function loadOverviewCategoryData(startDate = null, endDate = null) {
+async function loadOverviewCategoryData(startDate = null, endDate = null, kdCabang = null) {
     try {
         const params = {};
         
@@ -1559,6 +1462,11 @@ async function loadOverviewCategoryData(startDate = null, endDate = null) {
             console.log('Loading overview category data with default date range (last 30 days)');
         }
         
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+            console.log('Loading overview category data for cabang:', kdCabang);
+        }
+        
         const data = await fetchAPI('category-sales-summary', params);
         
         if (data && data.categories && Array.isArray(data.categories)) {
@@ -1566,8 +1474,22 @@ async function loadOverviewCategoryData(startDate = null, endDate = null) {
             updateOverviewCategoryChart(data.categories);
             updateOverviewCategoryLegend(data.summary);
         } else {
-            console.log('No valid overview category data received, using fallback');
-            // Fallback data akan dihandle oleh API
+            console.log('No valid overview category data received');
+            // Clear chart when no data
+            const chart = chartInstances.overviewCategoryChart;
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.update('active');
+            }
+            updateOverviewCategoryLegend({
+                total_categories: 0,
+                total_omset: 0,
+                total_qty: 0,
+                total_laba: 0,
+                top_categories: [],
+                top_category: null
+            });
         }
     } catch (error) {
         console.error('Error loading overview category data:', error);
@@ -1577,20 +1499,13 @@ async function loadOverviewCategoryData(startDate = null, endDate = null) {
 
 function updateOverviewCategoryChart(categories) {
     const chart = chartInstances.overviewCategoryChart;
-    const chartContainer = document.getElementById('overviewCategoryChart');
-    if (!chart || !categories || categories.length === 0) {
-        console.log('No chart instance or no category data to update');
+    if (!chart) return;
+    
+    if (!categories || categories.length === 0) {
+        console.log('No category data to update chart - clearing');
         chart.data.labels = [];
         chart.data.datasets[0].data = [];
         chart.update('active');
-
-        // Tambahkan pesan visual (opsional)
-        chartContainer.innerHTML = `
-            <div style="text-align:center; padding:2rem; color:#999;">
-                Tidak ada data kategori untuk rentang tanggal ini.
-            </div>
-        `;
-
         return;
     }
     
@@ -1789,51 +1704,31 @@ async function loadRevenueProfitDataTabels(startDate = null, endDate = null, kdC
 
 function initCategoryControls() {
     const categorySelect = document.getElementById('categorySelect');
-    const categoryStartDate = document.getElementById('categoryStartDate');
-    const categoryEndDate = document.getElementById('categoryEndDate');
     const applyCategoryBtn = document.getElementById('applyCategoryFilter');
     
-    if (categoryStartDate && categoryEndDate && applyCategoryBtn) {
-        // Set default date range (last 7 days)
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(endDate.getDate() - 7);
-        
-        categoryStartDate.value = startDate.toISOString().split('T')[0];
-        categoryEndDate.value = endDate.toISOString().split('T')[0];
-        
+    if (applyCategoryBtn) {
         // Add event listener for apply button
         applyCategoryBtn.addEventListener('click', function() {
             const selectedCategory = categorySelect.value;
-            const start = categoryStartDate.value;
-            const end = categoryEndDate.value;
             
             if (!selectedCategory) {
                 showNotification('Pilih kategori terlebih dahulu', 'warning');
                 return;
             }
             
-            if (!start || !end) {
-                showNotification('Pilih tanggal mulai dan selesai', 'warning');
-                return;
-            }
+            // Get current date range and cabang from main controls
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const cabangSelect = document.getElementById('cabangSelect');
             
-            if (new Date(start) > new Date(end)) {
-                showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal selesai', 'error');
-                return;
-            }
+            const startDate = startDateInput ? startDateInput.value : null;
+            const endDate = endDateInput ? endDateInput.value : null;
+            const kdCabang = cabangSelect ? cabangSelect.value : null;
             
-            loadCategorySalesData(selectedCategory, start, end);
-            showNotification(`Memuat data kategori dari ${start} sampai ${end}`, 'info');
-        });
-        
-        // Add enter key support
-        [categoryStartDate, categoryEndDate].forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    applyCategoryBtn.click();
-                }
-            });
+            loadCategorySalesData(selectedCategory, startDate, endDate, kdCabang);
+            
+            const cabangText = kdCabang && cabangSelect ? ` untuk cabang ${cabangSelect.options[cabangSelect.selectedIndex].text}` : '';
+            showNotification(`Memuat data kategori ${selectedCategory}${cabangText}`, 'info');
         });
     }
     
@@ -1906,13 +1801,17 @@ async function loadCabang() {
     }
 }
 
-async function loadCategorySalesData(categoryId, startDate = null, endDate = null) {
+async function loadCategorySalesData(categoryId, startDate = null, endDate = null, kdCabang = null) {
     try {
         const params = { category_id: categoryId };
         
         if (startDate && endDate) {
             params.start_date = startDate;
             params.end_date = endDate;
+        }
+        
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
         }
         
         const data = await fetchAPI('category-sales', params);
@@ -2396,7 +2295,7 @@ function initGlobalTableSorting() {
 }
 
 // Daily Sales Trend Data Functions
-async function loadDailyTrendData(startDate = null, endDate = null) {
+async function loadDailyTrendData(startDate = null, endDate = null, kdCabang = null) {
     try {
         const params = {};
         
@@ -2405,11 +2304,15 @@ async function loadDailyTrendData(startDate = null, endDate = null) {
             params.end_date = endDate;
         } else {
             // Default to 30 days
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(endDate.getDate() - 30);
-            params.start_date = startDate.toISOString().split('T')[0];
-            params.end_date = endDate.toISOString().split('T')[0];
+            const defaultEndDate = new Date();
+            const defaultStartDate = new Date();
+            defaultStartDate.setDate(defaultEndDate.getDate() - 30);
+            params.start_date = defaultStartDate.toISOString().split('T')[0];
+            params.end_date = defaultEndDate.toISOString().split('T')[0];
+        }
+        
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
         }
         
         console.log('Loading daily trend data for:', params);
@@ -2420,26 +2323,31 @@ async function loadDailyTrendData(startDate = null, endDate = null) {
             console.log('Received daily trend data:', data);
             updateDailyTrendChart(data);
         } else {
-            console.log('No valid daily trend data received, using fallback');
-            // Fallback with demo data
-            const fallbackData = generateFallbackDailyData(30);
-            updateDailyTrendChart(fallbackData);
+            console.log('No valid daily trend data received');
+            // Clear chart when no data
+            const chart = chartInstances.dailyTrendChart;
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.update('active');
+            }
         }
     } catch (error) {
         console.error('Error loading daily trend data:', error);
         showNotification('Gagal memuat data trend harian', 'error');
-        
-        // Use fallback data
-        const fallbackData = generateFallbackDailyData(30);
-        updateDailyTrendChart(fallbackData);
     }
 }
 
-async function loadWeeklyTrendData(weeks = 8) {
+async function loadWeeklyTrendData(weeks = 8, kdCabang = null) {
     try {
         const params = { weeks: weeks };
         
-        console.log('Loading weekly trend data for weeks:', weeks);
+        if (kdCabang) {
+            params.kd_cabang = kdCabang;
+        }
+        
+        console.log('Loading weekly trend data for weeks:', weeks, kdCabang ? `for cabang ${kdCabang}` : '');
         
         const data = await fetchAPI('weekly-sales-trend', params);
         
@@ -2447,24 +2355,35 @@ async function loadWeeklyTrendData(weeks = 8) {
             console.log('Received weekly trend data:', data);
             updateWeeklyTrendChart(data);
         } else {
-            console.log('No valid weekly trend data received, using fallback');
-            // Fallback with demo data
-            const fallbackData = generateFallbackWeeklyData(weeks);
-            updateWeeklyTrendChart(fallbackData);
+            console.log('No valid weekly trend data received');
+            // Clear chart when no data
+            const chart = chartInstances.weeklyTrendChart;
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.update('active');
+            }
         }
     } catch (error) {
         console.error('Error loading weekly trend data:', error);
         showNotification('Gagal memuat data trend mingguan', 'error');
-        
-        // Use fallback data
-        const fallbackData = generateFallbackWeeklyData(weeks);
-        updateWeeklyTrendChart(fallbackData);
     }
 }
 
 function updateDailyTrendChart(data) {
     const chart = chartInstances.dailyTrendChart;
-    if (!chart || !data || data.length === 0) return;
+    if (!chart) return;
+    
+    if (!data || data.length === 0) {
+        // Clear chart when no data
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
+        chart.data.datasets[1].data = [];
+        chart.update('active');
+        console.log('Daily trend chart cleared - no data available');
+        return;
+    }
     
     const labels = data.map(item => {
         const date = new Date(item.tanggal || item.date);
@@ -2489,7 +2408,17 @@ function updateDailyTrendChart(data) {
 
 function updateWeeklyTrendChart(data) {
     const chart = chartInstances.weeklyTrendChart;
-    if (!chart || !data || data.length === 0) return;
+    if (!chart) return;
+    
+    if (!data || data.length === 0) {
+        // Clear chart when no data
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
+        chart.data.datasets[1].data = [];
+        chart.update('active');
+        console.log('Weekly trend chart cleared - no data available');
+        return;
+    }
     
     const labels = data.map(item => item.minggu || item.week || `Minggu ${item.week_number || ''}`);
     const omsetData = data.map(item => parseFloat(item.total_omset || item.omset || 0));
@@ -2504,62 +2433,3 @@ function updateWeeklyTrendChart(data) {
     console.log('Weekly trend chart updated with', data.length, 'weeks of data');
 }
 
-// Fallback data generators for demo purposes
-function generateFallbackDailyData(days) {
-    const data = [];
-    const baseAmount = 500000;
-    
-    for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        
-        // Simulate weekly pattern (weekend lower sales)
-        const dayOfWeek = date.getDay();
-        const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.7 : 1;
-        
-        // Add some randomness
-        const randomMultiplier = 0.7 + (Math.random() * 0.6); // 0.7 to 1.3
-        
-        const omset = Math.round(baseAmount * weekendMultiplier * randomMultiplier);
-        const transaksi = Math.round(omset / 50000); // Average transaction value ~50k
-        
-        data.push({
-            tanggal: date.toISOString().split('T')[0],
-            total_omset: omset,
-            jumlah_transaksi: transaksi
-        });
-    }
-    
-    return data;
-}
-
-function generateFallbackWeeklyData(weeks) {
-    const data = [];
-    const baseAmount = 3500000; // Weekly target
-    
-    for (let i = weeks - 1; i >= 0; i--) {
-        const weekStart = new Date();
-        weekStart.setDate(weekStart.getDate() - (i * 7));
-        
-        // Add some randomness and growth trend
-        const trendMultiplier = 1 + (weeks - i - 1) * 0.02; // Small growth trend
-        const randomMultiplier = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
-        
-        const omset = Math.round(baseAmount * trendMultiplier * randomMultiplier);
-        const avgDaily = Math.round(omset / 7);
-        
-        const weekLabel = `Minggu ${weekStart.toLocaleDateString('id-ID', { 
-            month: 'short', 
-            day: 'numeric' 
-        })}`;
-        
-        data.push({
-            minggu: weekLabel,
-            total_omset: omset,
-            rata_rata_harian: avgDaily,
-            week_number: weeks - i
-        });
-    }
-    
-    return data;
-}
