@@ -70,18 +70,25 @@ app.get('/api/revenue-profit', async (req, res) => {
         
         console.log(`📊 Loading revenue-profit data from ${startDate} to ${endDate}${kdCabang ? ` for cabang ${kdCabang}` : ''}`);
         
-        // Tambahkan kondisi WHERE untuk cabang jika ada
-        const cabangCondition = kdCabang ? ' AND kd_cabang = ?' : '';
+        // Tambahkan kondisi WHERE untuk cabang dengan proper JOIN
+        const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
         
         const query = `
             SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota
-            FROM (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, SUM((netto - h_beli) * (jumlah - retur)) AS total_laba, 
-            SUM(total) AS total_omset FROM penjualan_det where tgl_jual BETWEEN ? AND ?${cabangCondition}
-            GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS a 
-            LEFT JOIN (SELECT DATE_FORMAT(tgl_jual, '%Y-%m') AS bulan, 
-            COUNT(no_faktur_jual) AS jumlah_faktur FROM penjualan_fix where tgl_jual BETWEEN ? AND ?${cabangCondition}
-            GROUP BY DATE_FORMAT(tgl_jual, '%Y-%m')) AS b 
+            FROM (SELECT DATE_FORMAT(pf.tgl_jual, '%Y-%m') AS bulan, 
+                  SUM((pd.netto - pd.h_beli) * (pd.jumlah - pd.retur)) AS total_laba, 
+                  SUM(pd.total) AS total_omset 
+                  FROM penjualan_fix pf
+                  LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+                  WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
+                  AND pd.jumlah > 0
+                  GROUP BY DATE_FORMAT(pf.tgl_jual, '%Y-%m')) AS a 
+            LEFT JOIN (SELECT DATE_FORMAT(pf.tgl_jual, '%Y-%m') AS bulan, 
+                      COUNT(pf.no_faktur_jual) AS jumlah_faktur 
+                      FROM penjualan_fix pf
+                      WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
+                      GROUP BY DATE_FORMAT(pf.tgl_jual, '%Y-%m')) AS b 
             ON a.bulan = b.bulan 
             ORDER BY a.bulan
         `;
@@ -89,7 +96,7 @@ app.get('/api/revenue-profit', async (req, res) => {
         const params = [startDate, endDate, ...cabangParams, startDate, endDate, ...cabangParams];
         const results = await executeQuery(query, params);
 
-        const totalRevenueQuery = `SELECT SUM(grand_total) AS total_revenue FROM penjualan_fix WHERE tgl_jual BETWEEN ? AND ?${cabangCondition}`;
+        const totalRevenueQuery = `SELECT SUM(pf.grand_total) AS total_revenue FROM penjualan_fix pf WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}`;
         const totalRevenueParams = [startDate, endDate, ...cabangParams];
         const totalRevenueResult = await executeQuery(totalRevenueQuery, totalRevenueParams);
         const totalRevenue = totalRevenueResult[0]?.total_revenue || 0;
