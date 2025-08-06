@@ -593,6 +593,10 @@ canvas {
     justify-content: space-between;
   }
 
+  .user-profile {
+    display: none;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
