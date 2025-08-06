@@ -499,6 +499,7 @@
 
 .apply-btn {
   padding: 0.5rem 1rem;
+  margin-left: 10px;
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border: none;
@@ -2280,6 +2281,7 @@ canvas {
 
 .apply-btn {
   padding: 0.5rem 1rem;
+  margin-left: 10px;
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
   border: none;
@@ -2748,4 +2750,89 @@ div.chart-container {
 /* Reduce reflows during resize */
 .charts-row {
   contain: layout style;
+}
+
+/* ===== RESPONSIVE FIXES FOR CONTROL-USER SECTION ===== */
+.control-user {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.user-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.user-select label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-select select {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.user-select .apply-btn {
+  width: 100%;
+  margin-left: 0 !important;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  justify-self: stretch;
+}
+
+/* Desktop layout for control-user */
+@media (min-width: 768px) {
+  .control-user {
+    flex-direction: row;
+    align-items: end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .user-select {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+  }
+
+  .user-select label {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .user-select select {
+    flex: 1;
+    margin-bottom: 0;
+    max-width: 200px;
+  }
+
+  .user-select .apply-btn {
+    width: auto;
+    margin-left: 10px !important;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+  }
+}
+
+/* Large desktop improvements */
+@media (min-width: 1024px) {
+  .control-user {
+    justify-content: flex-start;
+  }
+
+  .user-select select {
+    max-width: 250px;
+  }
 }
