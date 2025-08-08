@@ -1,5 +1,5 @@
 # WSB Report Dashboard
-
+<img width="1918" height="971" alt="Image" src="https://github.com/user-attachments/assets/bb978b92-026e-45df-aa1d-1a1ad10248ad" />
 Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript yang terhubung ke database MySQL.
 
 ##  Fitur
