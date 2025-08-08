@@ -24,6 +24,12 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 ### Prerequisites
 - **Node.js** (versi 16 atau lebih baru)
 - **MySQL Server** (versi 5.7 atau lebih baru)
+
+> ⚠️ **PERINGATAN DATABASE PERFORMANCE**: 
+> Project ini **direkomendasikan menggunakan MySQL** untuk performa optimal. 
+> **MariaDB akan mengalami query yang lambat** karena perbedaan optimizer dan query execution plan. 
+> Jika harus menggunakan MariaDB, harap siapkan waktu loading yang lebih lama.
+
 - **Database `toko`** dengan struktur tabel yang sesuai:
   - `penjualan_fix` - Header transaksi penjualan (no_faktur_jual, tgl_jual, grand_total, operator, kd_cabang)
   - `penjualan_det` - Detail item per transaksi (no_faktur_jual, kd_produk, nama_produk, jumlah, total, netto, h_beli, retur)
