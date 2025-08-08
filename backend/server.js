@@ -45,13 +45,67 @@ async function initDatabase() {
     }
 }
 
-// Helper function to execute queries safely
+// Simple in-memory cache
+const queryCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Generate cache key from query and parameters
+const generateCacheKey = (query, params = []) => {
+    return `${query}|${JSON.stringify(params)}`;
+};
+
+// Get from cache if exists and not expired
+const getFromCache = (cacheKey) => {
+    const cached = queryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log('Cache hit:', cacheKey.substring(0, 50) + '...');
+        return cached.data;
+    }
+    return null;
+};
+
+// Set cache with timestamp
+const setCache = (cacheKey, data) => {
+    queryCache.set(cacheKey, {
+        data: data,
+        timestamp: Date.now()
+    });
+    
+    // Clean old cache entries periodically
+    if (queryCache.size > 100) {
+        const now = Date.now();
+        for (const [key, value] of queryCache.entries()) {
+            if (now - value.timestamp > CACHE_DURATION) {
+                queryCache.delete(key);
+            }
+        }
+    }
+};
+
+// Helper function to execute queries safely with caching
 async function executeQuery(query, params = []) {
+    const cacheKey = generateCacheKey(query, params);
+    
+    // Check cache first
+    const cachedResult = getFromCache(cacheKey);
+    if (cachedResult) {
+        return cachedResult;
+    }
+    
+    const startTime = Date.now();
+    
     try {
         if (!pool) {
             throw new Error('Database not initialized');
         }
         const [rows] = await pool.execute(query, params);
+        
+        const executionTime = Date.now() - startTime;
+        console.log(`Query executed in ${executionTime}ms`);
+        
+        // Cache the results
+        setCache(cacheKey, rows);
+        
         return rows;
     } catch (error) {
         console.error('Query error:', error.message);
@@ -64,7 +118,7 @@ async function executeQuery(query, params = []) {
 // Revenue & Profit endpoint
 app.get('/api/revenue-profit', async (req, res) => {
     try {
-        const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
         const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
@@ -75,25 +129,20 @@ app.get('/api/revenue-profit', async (req, res) => {
         const cabangParams = kdCabang ? [kdCabang] : [];
         
         const query = `
-            SELECT a.bulan, a.total_omset, a.total_laba, IFNULL(b.jumlah_faktur, 0) AS jumlah_nota
-            FROM (SELECT DATE_FORMAT(pf.tgl_jual, '%Y-%m') AS bulan, 
-                  SUM((pd.netto - pd.h_beli) * (pd.jumlah - pd.retur)) AS total_laba, 
-                  SUM(pd.total) AS total_omset 
-                  FROM penjualan_fix pf
-                  LEFT JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
-                  WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
-                  AND pd.jumlah > 0
-                  GROUP BY DATE_FORMAT(pf.tgl_jual, '%Y-%m')) AS a 
-            LEFT JOIN (SELECT DATE_FORMAT(pf.tgl_jual, '%Y-%m') AS bulan, 
-                      COUNT(pf.no_faktur_jual) AS jumlah_faktur 
-                      FROM penjualan_fix pf
-                      WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
-                      GROUP BY DATE_FORMAT(pf.tgl_jual, '%Y-%m')) AS b 
-            ON a.bulan = b.bulan 
-            ORDER BY a.bulan
+            SELECT 
+                DATE_FORMAT(pf.tgl_jual, '%Y-%m') AS bulan,
+                SUM(pd.total) AS total_omset,
+                SUM((pd.netto - pd.h_beli) * (pd.jumlah - COALESCE(pd.retur, 0))) AS total_laba,
+                COUNT(DISTINCT pf.no_faktur_jual) AS jumlah_faktur
+            FROM penjualan_fix pf
+            INNER JOIN penjualan_det pd ON pf.no_faktur_jual = pd.no_faktur_jual
+            WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}
+            AND pd.jumlah > 0
+            GROUP BY DATE_FORMAT(pf.tgl_jual, '%Y-%m')
+            ORDER BY bulan
         `;
         
-        const params = [startDate, endDate, ...cabangParams, startDate, endDate, ...cabangParams];
+        const params = [startDate, endDate, ...cabangParams];
         const results = await executeQuery(query, params);
 
         const totalRevenueQuery = `SELECT SUM(pf.grand_total) AS total_revenue FROM penjualan_fix pf WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}`;
@@ -102,7 +151,6 @@ app.get('/api/revenue-profit', async (req, res) => {
         const totalRevenue = totalRevenueResult[0]?.total_revenue || 0;
 
         
-        let revenueData = [];
         let labels = [];
         let omsetData = [];
         let labaData = [];
@@ -118,11 +166,10 @@ app.get('/api/revenue-profit', async (req, res) => {
         } else {
             console.log(`✅ Found ${results.length} records`);
             results.forEach(row => {
-                revenueData.push(Math.round(row.total_revenue || 0));
                 labels.push(row.bulan); // '2025-06', '2025-07', dll.
                 omsetData.push(Math.round(row.total_omset || 0));
                 labaData.push(Math.round(row.total_laba || 0));
-                notaData.push(Math.round(row.jumlah_nota || 0));
+                notaData.push(Math.round(row.jumlah_faktur || 0)); // Fixed: use jumlah_faktur instead of jumlah_nota
             });
 
         }
@@ -187,7 +234,7 @@ app.get('/api/categories', async (req, res) => {
 app.get('/api/category-sales', async (req, res) => {
     try {
         const categoryId = req.query.category_id;
-        const startDate = req.query.start_date || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const startDate = req.query.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         const endDate = req.query.end_date || new Date().toISOString().split('T')[0];
         const kdCabang = req.query.kd_cabang; // Filter cabang baru
         
@@ -314,7 +361,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
         const cabangCondition = kdCabang ? ' AND pf.kd_cabang = ?' : '';
         const cabangParams = kdCabang ? [kdCabang] : [];
         
-        // Query untuk mendapatkan total penjualan per kategori dengan proper JOIN
+        // Query untuk mendapatkan total penjualan per kategori menggunakan metode yang sama dengan revenue-profit API
         const categorySummaryQuery = `
             SELECT 
                 ps.kategori,
@@ -334,10 +381,16 @@ app.get('/api/category-sales-summary', async (req, res) => {
             ORDER BY total_omset DESC
         `;
         
+        // Query untuk mendapatkan total revenue dengan metode yang sama seperti card omset
+        const totalRevenueQuery = `SELECT SUM(pf.grand_total) AS total_revenue FROM penjualan_fix pf WHERE pf.tgl_jual BETWEEN ? AND ?${cabangCondition}`;
+        const totalRevenueParams = [startDate, endDate, ...cabangParams];
+        const totalRevenueResult = await executeQuery(totalRevenueQuery, totalRevenueParams);
+        const grandTotalRevenue = totalRevenueResult[0]?.total_revenue || 0;
+        
         const params = [startDate, endDate, ...cabangParams];
         let categoryResults = await executeQuery(categorySummaryQuery, params);
         
-        // Jika tidak ada data dari pecah_stok, coba dari penjualan_det langsung dengan proper JOIN
+        // Jika tidak ada data dari pecah_stok, coba dari penjualan_det langsung
         if (!categoryResults || categoryResults.length === 0) {
             const alternativeQuery = `
                 SELECT 
@@ -357,8 +410,8 @@ app.get('/api/category-sales-summary', async (req, res) => {
             categoryResults = await executeQuery(alternativeQuery, params);
         }
         
-        // Hitung total keseluruhan
-        const totalOmset = categoryResults.reduce((sum, cat) => sum + (parseFloat(cat.total_omset) || 0), 0);
+        // Hitung total keseluruhan dari kategori
+        const categoryTotalOmset = categoryResults.reduce((sum, cat) => sum + (parseFloat(cat.total_omset) || 0), 0);
         const totalQty = categoryResults.reduce((sum, cat) => sum + (parseInt(cat.total_qty) || 0), 0);
         const totalLaba = categoryResults.reduce((sum, cat) => sum + (parseFloat(cat.total_laba) || 0), 0);
         
@@ -369,7 +422,8 @@ app.get('/api/category-sales-summary', async (req, res) => {
             total_qty: parseInt(cat.total_qty) || 0,
             total_laba: parseFloat(cat.total_laba) || 0,
             total_products: parseInt(cat.total_products) || 0,
-            percentage: totalOmset > 0 ? ((parseFloat(cat.total_omset) / totalOmset) * 100).toFixed(1) : 0
+            // Hitung persentase berdasarkan grand total revenue (konsisten dengan Omset card)
+            percentage: grandTotalRevenue > 0 ? ((parseFloat(cat.total_omset) / grandTotalRevenue) * 100).toFixed(1) : 0
         }));
         
         // Cari top 5 kategori dengan penjualan tertinggi
@@ -381,13 +435,14 @@ app.get('/api/category-sales-summary', async (req, res) => {
         
         const topCategory = chartData.length > 0 ? chartData[0] : null;
         
-        console.log(`Found ${categoryResults.length} categories with total sales: Rp ${totalOmset.toLocaleString('id-ID')}`);
+        console.log(`Found ${categoryResults.length} categories. Category total: Rp ${categoryTotalOmset.toLocaleString('id-ID')}, Grand total: Rp ${grandTotalRevenue.toLocaleString('id-ID')}`);
         
         res.json({
             categories: chartData,
             summary: {
                 total_categories: categoryResults.length,
-                total_omset: totalOmset,
+                total_omset: grandTotalRevenue, // Gunakan grand total revenue untuk konsistensi
+                category_omset: categoryTotalOmset, // Total dari kategori untuk referensi
                 total_qty: totalQty,
                 total_laba: totalLaba,
                 top_categories: topCategories, // Top 5 categories
@@ -411,6 +466,7 @@ app.get('/api/category-sales-summary', async (req, res) => {
             summary: {
                 total_categories: 0,
                 total_omset: 0,
+                category_omset: 0,
                 total_qty: 0,
                 total_laba: 0,
                 top_categories: [],
@@ -795,6 +851,55 @@ app.get('/api/product/:productId', async (req, res) => {
         console.error('Product detail API error:', error);
         res.status(500).json({
             error: 'Failed to load product detail: ' + error.message
+        });
+    }
+});
+
+// Cache management endpoint
+app.post('/api/cache/clear', (req, res) => {
+    try {
+        const cacheSize = queryCache.size;
+        queryCache.clear();
+        console.log(`Cache cleared. Removed ${cacheSize} entries.`);
+        res.json({
+            success: true,
+            message: `Cache cleared successfully. Removed ${cacheSize} entries.`
+        });
+    } catch (error) {
+        console.error('Error clearing cache:', error);
+        res.status(500).json({
+            error: 'Error clearing cache',
+            details: error.message
+        });
+    }
+});
+
+// Get cache statistics
+app.get('/api/cache/stats', (req, res) => {
+    try {
+        const now = Date.now();
+        let activeEntries = 0;
+        let expiredEntries = 0;
+        
+        for (const [key, value] of queryCache.entries()) {
+            if (now - value.timestamp < CACHE_DURATION) {
+                activeEntries++;
+            } else {
+                expiredEntries++;
+            }
+        }
+        
+        res.json({
+            totalEntries: queryCache.size,
+            activeEntries: activeEntries,
+            expiredEntries: expiredEntries,
+            cacheDurationMinutes: CACHE_DURATION / (60 * 1000)
+        });
+    } catch (error) {
+        console.error('Error getting cache stats:', error);
+        res.status(500).json({
+            error: 'Error getting cache statistics',
+            details: error.message
         });
     }
 });
