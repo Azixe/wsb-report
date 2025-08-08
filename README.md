@@ -4,14 +4,18 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 
 ##  Fitur
 
-- **Dashboard Analytics** dengan revenue, profit, dan kategori sales
-- **Performa Operator** - Analisis kinerja operator dengan chart dan tabel
-- **Category Sales Analysis** - Top 5 kategori dengan breakdown produk
-- **Revenue & Profit Tracking** dengan filter rentang tanggal
+- **Unified Branch Filtering** - Satu dropdown cabang mengontrol semua chart dan data
+- **Standardized Revenue Calculation** - Konsistensi data antara card omset dan overview chart
+- **Dashboard Analytics** dengan revenue, profit, dan kategori sales per cabang
+- **Multi-Branch Support** - Support untuk multiple cabang/outlet dengan filtering
+- **Performa Operator** - Analisis kinerja operator per cabang dengan chart dan tabel
+- **Category Sales Analysis** - Top kategori dengan breakdown produk per cabang
+- **Revenue & Profit Tracking** dengan filter rentang tanggal dan cabang
 - **Layout Responsif** - Optimized untuk desktop dan mobile
-- **Database Integration** dengan MySQL untuk data real-time
+- **Database Integration** dengan MySQL untuk data real-time multi-cabang
 - **Modern UI/UX** dengan CSS Grid dan design yang clean
-- **Real-time Data Loading** dari backend Express.js APIDashboard
+- **Real-time Data Loading** dari backend Express.js API dengan caching
+- **Query Optimization** - In-memory caching dan optimized SQL queries
 
 Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanilla JavaScript yang terhubung ke database MySQL.
 
@@ -21,10 +25,12 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 - **Node.js** (versi 16 atau lebih baru)
 - **MySQL Server** (versi 5.7 atau lebih baru)
 - **Database `toko`** dengan struktur tabel yang sesuai:
-  - `penjualan_fix` - Header transaksi penjualan
-  - `penjualan_det` - Detail item per transaksi
-  - `pecah_stok` - Master produk dengan kategori
-  - `produk` - Data stok produk
+  - `penjualan_fix` - Header transaksi penjualan (no_faktur_jual, tgl_jual, grand_total, operator, kd_cabang)
+  - `penjualan_det` - Detail item per transaksi (no_faktur_jual, kd_produk, nama_produk, jumlah, total, netto, h_beli, retur)
+  - `pecah_stok` - Master produk dengan kategori (kd_produk, nama_produk, kategori, harga_jual_umum, harga_beli)
+  - `produk` - Data stok produk (kd_produk, stok_toko, stok_gudang, stok_minimal)
+  - `cabang` - Master cabang/outlet (kd_cabang, nama_cabang)
+  - `kategori` - Master kategori produk (kd_kategori, nama_kategori)
 
 ### Installation & Running
 
@@ -69,34 +75,52 @@ Dashboard Laporan Inventori Retail dengan backend Express.js dan frontend vanill
 
 Server Express.js menyediakan endpoint berikut:
 
-| Endpoint | Method | Deskripsi |
-|----------|---------|-----------|
-| `/api/revenue-profit` | GET | Data omset & laba dengan filter tanggal |
-| `/api/categories` | GET | Daftar kategori produk |
-| `/api/category-sales` | GET | Detail penjualan per kategori |
-| `/api/category-sales-summary` | GET | Summary penjualan semua kategori (top 5) |
-| `/api/user-sales` | GET | Performa penjualan per operator |
-| `/api/user-individual-sales` | GET | Detail penjualan operator individual |
-| `/api/users` | GET | Daftar operator/user |
-| `/api/daily-sales-trend` | GET | Trend penjualan harian |
-| `/api/weekly-sales-trend` | GET | Trend penjualan mingguan |
-| `/api/product/:productId` | GET | Detail produk dan analytics |
+| Endpoint | Method | Deskripsi | Parameters |
+|----------|---------|-----------|------------|
+| `/api/revenue-profit` | GET | Data omset & laba dengan filter tanggal dan cabang | `start_date`, `end_date`, `kd_cabang` |
+| `/api/categories` | GET | Daftar kategori produk | - |
+| `/api/category-sales` | GET | Detail penjualan per kategori | `category_id`, `start_date`, `end_date`, `kd_cabang` |
+| `/api/category-sales-summary` | GET | Summary penjualan semua kategori (overview chart) | `start_date`, `end_date`, `kd_cabang` |
+| `/api/user-sales` | GET | Performa penjualan per operator | `start_date`, `end_date`, `kd_cabang` |
+| `/api/user-individual-sales` | GET | Detail penjualan operator individual | `operator`, `start_date`, `end_date`, `kd_cabang` |
+| `/api/users` | GET | Daftar operator/user per cabang | `kd_cabang` |
+| `/api/cabang` | GET | Daftar cabang/outlet | - |
+| `/api/daily-sales-trend` | GET | Trend penjualan harian | `start_date`, `end_date`, `days`, `kd_cabang` |
+| `/api/weekly-sales-trend` | GET | Trend penjualan mingguan | `weeks`, `kd_cabang` |
+| `/api/product/:productId` | GET | Detail produk dan analytics | - |
+| `/api/cache/clear` | POST | Clear query cache | - |
+| `/api/cache/stats` | GET | Cache statistics | - |
 
 ### Contoh penggunaan API:
 
-**Revenue-Profit dengan filter tanggal:**
+**Revenue-Profit dengan filter tanggal dan cabang:**
 ```
-GET /api/revenue-profit?start_date=2025-01-01&end_date=2025-01-31
-```
-
-**Category Sales Summary (Top 5):**
-```
-GET /api/category-sales-summary?start_date=2025-01-01&end_date=2025-01-31
+GET /api/revenue-profit?start_date=2025-01-01&end_date=2025-01-31&kd_cabang=1
 ```
 
-**User Sales Performance:**
+**Category Sales Summary (Overview Chart):**
 ```
-GET /api/user-sales?start_date=2025-01-01&end_date=2025-01-31
+GET /api/category-sales-summary?start_date=2025-01-01&end_date=2025-01-31&kd_cabang=1
+```
+
+**User Sales Performance dengan filter cabang:**
+```
+GET /api/user-sales?start_date=2025-01-01&end_date=2025-01-31&kd_cabang=1
+```
+
+**Daftar Cabang:**
+```
+GET /api/cabang
+```
+
+**Daily Sales Trend dengan filter cabang:**
+```
+GET /api/daily-sales-trend?start_date=2025-01-01&end_date=2025-01-31&kd_cabang=1
+```
+
+**Category Sales Detail:**
+```
+GET /api/category-sales?category_id=MAKANAN&start_date=2025-01-01&end_date=2025-01-31&kd_cabang=1
 ```
 ##  Tech Stack
 
@@ -109,25 +133,34 @@ GET /api/user-sales?start_date=2025-01-01&end_date=2025-01-31
 
 ##  Dashboard Features
 
+### Unified Branch Filtering System
+- **Single Branch Selector**: Satu dropdown cabang yang mengontrol semua chart dan data
+- **Consistent Data Display**: Semua section dashboard menampilkan data yang konsisten untuk cabang terpilih
+- **Real-time Updates**: Perubahan cabang langsung memperbarui seluruh dashboard
+
 ### Revenue & Profit Analytics
+- **Standardized Revenue Calculation**: Menggunakan `penjualan_fix.grand_total` untuk konsistensi data
 - **Monthly Revenue Tracking**: Bar chart dengan data omset dan laba bulanan
-- **Date Range Filtering**: Filter data berdasarkan rentang tanggal
-- **Real-time Updates**: Data langsung dari database MySQL
+- **Branch-specific Filtering**: Filter data berdasarkan cabang dan rentang tanggal
+- **Accurate Total Display**: Card omset dan overview chart menampilkan angka yang sama
 
 ### Category Sales Analysis  
-- **Top 5 Categories**: Pie chart kategori dengan penjualan tertinggi
+- **Top Categories Overview**: Pie chart kategori dengan penjualan tertinggi per cabang
 - **Product Breakdown**: Detail produk per kategori dengan omset dan laba
 - **Interactive Charts**: Chart yang responsive dan interactive
+- **Proportional Display**: Persentase dihitung berdasarkan total revenue cabang
 
 ### Operator Performance (User Sales)
-- **Sales Leaderboard**: Ranking operator berdasarkan total penjualan
+- **Sales Leaderboard**: Ranking operator berdasarkan total penjualan per cabang
 - **Individual Analysis**: Breakdown produk per operator
-- **Transaction Analytics**: Total transaksi dan nilai penjualan
+- **Transaction Analytics**: Total transaksi dan nilai penjualan per operator
+- **Branch-specific Performance**: Analisis performa operator per cabang
 
 ### Product Analytics
-- **Daily/Weekly Trends**: Analisis trend penjualan produk
+- **Daily/Weekly Trends**: Analisis trend penjualan produk per cabang
 - **Stock Analytics**: Monitoring stok dan performa produk
 - **Detailed Reports**: Comprehensive product performance data
+- **Cross-branch Comparison**: Perbandingan performa produk antar cabang
 
 ##  Responsive Design
 
@@ -138,20 +171,58 @@ GET /api/user-sales?start_date=2025-01-01&end_date=2025-01-31
 
 ##  Database Schema
 
-Project ini menggunakan database MySQL dengan nama `toko` yang memiliki struktur untuk sistem POS/retail:
+Project ini menggunakan database MySQL dengan nama `toko` yang memiliki struktur untuk sistem POS/retail multi-cabang:
 
 ### Tabel Utama:
-- **`penjualan_fix`**: Header transaksi penjualan (operator, tanggal, total)
-- **`penjualan_det`**: Detail item per transaksi (produk, qty, harga, laba)
-- **`pecah_stok`**: Master produk dengan kategori dan harga
-- **`produk`**: Data stok produk
-- **`kategori`**: Master kategori produk
+- **`penjualan_fix`**: Header transaksi penjualan
+  - `no_faktur_jual` (PRIMARY KEY) - Nomor faktur unik
+  - `tgl_jual` - Tanggal transaksi
+  - `grand_total` - Total nilai transaksi (untuk revenue calculation)
+  - `operator` - Nama operator/kasir
+  - `kd_cabang` - Kode cabang/outlet
 
-### Query Analytics:
-- **Revenue & Profit**: JOIN `penjualan_fix` + `penjualan_det` untuk kalkulasi bulanan
-- **Category Sales**: JOIN `pecah_stok` + `penjualan_det` untuk breakdown kategori  
-- **User Performance**: GROUP BY operator dari `penjualan_fix` untuk analytics kinerja
-- **Product Analytics**: Aggregasi data penjualan per produk dengan stok
+- **`penjualan_det`**: Detail item per transaksi
+  - `no_faktur_jual` (FOREIGN KEY) - Referensi ke penjualan_fix
+  - `kd_produk` - Kode produk
+  - `nama_produk` - Nama produk
+  - `jumlah` - Quantity terjual
+  - `total` - Total harga item
+  - `netto` - Harga netto per unit
+  - `h_beli` - Harga beli per unit
+  - `retur` - Quantity retur (jika ada)
+
+- **`pecah_stok`**: Master produk dengan kategori
+  - `kd_produk` (PRIMARY KEY) - Kode produk unik
+  - `nama_produk` - Nama produk
+  - `kategori` - Kategori produk (MAKANAN, MINUMAN, dll)
+  - `sub_kategori` - Sub kategori produk
+  - `harga_jual_umum` - Harga jual retail
+  - `harga_beli` - Harga beli dari supplier
+  - `satuan` - Unit satuan (PCS, BOX, dll)
+
+- **`produk`**: Data stok produk
+  - `kd_produk` (FOREIGN KEY) - Referensi ke pecah_stok
+  - `stok_toko` - Stok di toko
+  - `stok_gudang` - Stok di gudang utama
+  - `stok_gudang_2` - Stok di gudang cadangan
+  - `stok_minimal` - Minimum stock level
+
+- **`cabang`**: Master cabang/outlet
+  - `kd_cabang` (PRIMARY KEY) - Kode cabang unik
+  - `nama_cabang` - Nama cabang/outlet
+
+- **`kategori`**: Master kategori produk
+  - `kd_kategori` (PRIMARY KEY) - Kode kategori
+  - `nama_kategori` - Nama kategori
+
+### Query Analytics & Performance:
+- **Revenue & Profit**: JOIN `penjualan_fix` + `penjualan_det` dengan filtering `kd_cabang`
+- **Standardized Revenue**: Menggunakan `penjualan_fix.grand_total` untuk konsistensi
+- **Category Sales**: JOIN `pecah_stok` + `penjualan_det` + `penjualan_fix` untuk breakdown kategori per cabang
+- **User Performance**: GROUP BY operator dari `penjualan_fix` dengan filter cabang
+- **Product Analytics**: Aggregasi data penjualan per produk dengan stok, support multi-cabang
+- **Caching System**: In-memory cache (5 menit) untuk optimasi query yang sering digunakan
+- **Query Optimization**: Proper indexing dan JOIN optimization untuk performa maksimal
 
 ##  Struktur Project
 
