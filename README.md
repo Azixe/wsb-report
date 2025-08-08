@@ -261,7 +261,6 @@ wsb-report/
 ### Performance Issues
 - **Large datasets**: API menggunakan LIMIT untuk query besar
 - **Date ranges**: Filter tanggal untuk membatasi data yang dimuat
-- **SQL optimization**: Query sudah dioptimasi dengan proper indexing
 
 
 ## Kontributor
